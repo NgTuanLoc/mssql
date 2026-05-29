@@ -38,6 +38,31 @@ The AdventureWorks2022 backup file is not included in this repository (it is ~20
    GO
    ```
 
+## Connection Details
+
+| Field | Value |
+|---|---|
+| Server name | `localhost,1433` |
+| Authentication | SQL Server Authentication |
+| Login | `sa` |
+| Password | value of `SA_PASSWORD` in `docker/.env` |
+
+**SSMS / Azure Data Studio:** paste `localhost,1433` into the *Server name* field, choose *SQL Server Authentication*, enter `sa` and your password.
+
+**ADO.NET connection string:**
+```
+Server=localhost,1433;Database=AdventureWorks2022;User Id=sa;Password=<your_password>;TrustServerCertificate=True;
+```
+
+**ODBC / DSN:**
+```
+Driver={ODBC Driver 18 for SQL Server};Server=localhost,1433;Database=AdventureWorks2022;Uid=sa;Pwd=<your_password>;TrustServerCertificate=yes;
+```
+
+> `TrustServerCertificate=True` is required because the container uses a self-signed certificate.
+
+---
+
 ## Re-seeding
 
 If you make changes you want to undo, run:
