@@ -47,6 +47,7 @@ mssql/
 ├── lessons/
 │   ├── 01-setup-and-basics/
 │   │   ├── README.md
+│   │   ├── setup.sql            # one-shot data prep for this lesson
 │   │   ├── examples.sql
 │   │   ├── exercises.sql
 │   │   └── exercises-solutions.sql
@@ -168,9 +169,24 @@ Format: short intro → tables and code blocks → "common mistakes" footer. Sca
 - **`04-indexes.md`** — Index types, syntax, "what to index" rules of thumb, useful DMVs.
 - **`05-execution-plans.md`** — How to read a plan, common operators (Scan/Seek/Hash/Merge/Nested Loops), warning signs, SARGability checklist, useful `SET` commands.
 
+## Data Preparation Guarantee
+
+**Every lesson must be runnable end-to-end without the user designing or seeding their own data.** The learner's attention stays on the concept.
+
+Rules:
+
+- **Default dataset is AdventureWorks.** Restored once in lesson 1; persists in the named Docker volume for all subsequent lessons.
+- **Per-lesson `setup.sql`** prepares anything beyond AdventureWorks: extra tables, sample rows, isolation-level demo data, indexed copies of tables for the perf tier, etc. The learner runs `setup.sql` once at the start of the lesson.
+- **`setup.sql` is idempotent.** Each lesson uses its own dedicated schema (e.g., `lesson07`, `lesson12`) so re-running setup or moving between lessons never collides with prior work. Drop-and-recreate at the schema level inside `setup.sql`.
+- **No exercise depends on the learner having completed a prior exercise's mutations.** If an exercise modifies data, either it operates on a `setup.sql`-created table (safe to re-seed), or `exercises.sql` resets the relevant rows at the top.
+- **`exercises-solutions.sql` is always provided** with every lesson, with one solution per exercise and a 1–2 line comment explaining the approach (not just the answer).
+- **`reset-db.ps1` recovers from any mistake** by dropping and re-restoring AdventureWorks, which automatically wipes per-lesson schemas as well.
+
+This pattern keeps each lesson's cognitive load on the topic, not on data engineering.
+
 ## Per-Lesson Layout
 
-Every lesson directory contains four files:
+Every lesson directory contains five files:
 
 ### `README.md`
 
@@ -180,6 +196,9 @@ Every lesson directory contains four files:
 ## What you'll learn
 - bullet
 - bullet
+
+## Setup
+Run `setup.sql` once. It creates the `lessonNN` schema and any extra data this lesson needs.
 
 ## Concepts
 <Brief explanation with small inline snippets.>
@@ -194,8 +213,12 @@ Every lesson directory contains four files:
 See `cheatsheets/NN-...md`
 
 ## Exercises
-Open `exercises.sql` and try them in order.
+Open `exercises.sql` and try them in order. Solutions in `exercises-solutions.sql` — peek only after attempting.
 ```
+
+### `setup.sql`
+
+Idempotent. Drops and recreates the `lessonNN` schema, then creates any tables and seed data this lesson needs beyond AdventureWorks. Safe to re-run. Lessons that need nothing beyond AdventureWorks still include a minimal `setup.sql` that creates the empty schema — keeps the workflow uniform across lessons.
 
 ### `examples.sql`
 
