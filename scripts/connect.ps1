@@ -15,6 +15,7 @@ if (-not $password) {
     exit 1
 }
 
+$container = if (Get-Command podman -ErrorAction SilentlyContinue) { "podman" } else { "docker" }
 Write-Host "Connecting to mssql-learn as sa..." -ForegroundColor Cyan
-docker exec -it mssql-learn /opt/mssql-tools18/bin/sqlcmd `
+& $container exec -it mssql-learn /opt/mssql-tools18/bin/sqlcmd `
     -S localhost -U sa -P $password -No

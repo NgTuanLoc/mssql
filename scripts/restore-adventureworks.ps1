@@ -22,19 +22,12 @@ if (-not (Test-Path $bakPath)) {
     exit 1
 }
 
-Write-Host "Restoring AdventureWorks2022 — this takes ~30 seconds..." -ForegroundColor Cyan
+Write-Host "Restoring AdventureWorks2022 -- this takes ~30 seconds..." -ForegroundColor Cyan
 
-$sql = @"
-RESTORE DATABASE [AdventureWorks2022]
-FROM DISK = N'/var/opt/mssql/backups/AdventureWorks2022.bak'
-WITH
-    MOVE N'AdventureWorks2022'     TO N'/var/opt/mssql/data/AdventureWorks2022.mdf',
-    MOVE N'AdventureWorks2022_log' TO N'/var/opt/mssql/data/AdventureWorks2022_log.ldf',
-    REPLACE,
-    STATS = 10;
-"@
+$sql = "RESTORE DATABASE [AdventureWorks2022] FROM DISK = N'/var/opt/mssql/backups/AdventureWorks2022.bak' WITH MOVE N'AdventureWorks2022' TO N'/var/opt/mssql/data/AdventureWorks2022.mdf', MOVE N'AdventureWorks2022_log' TO N'/var/opt/mssql/data/AdventureWorks2022_log.ldf', REPLACE, STATS = 10;"
 
-$sql | docker exec -i mssql-learn /opt/mssql-tools18/bin/sqlcmd `
+$container = if (Get-Command podman -ErrorAction SilentlyContinue) { "podman" } else { "docker" }
+$sql | & $container exec -i mssql-learn /opt/mssql-tools18/bin/sqlcmd `
     -S localhost -U sa -P $password -No
 
 if ($LASTEXITCODE -eq 0) {

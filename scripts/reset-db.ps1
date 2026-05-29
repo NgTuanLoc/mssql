@@ -18,18 +18,10 @@ if (-not $password) {
 
 Write-Host "Dropping AdventureWorks2022..." -ForegroundColor Yellow
 
-$dropSql = @"
-IF DB_ID('AdventureWorks2022') IS NOT NULL
-BEGIN
-    ALTER DATABASE [AdventureWorks2022] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [AdventureWorks2022];
-    PRINT 'Database dropped.';
-END
-ELSE
-    PRINT 'Database did not exist, skipping drop.';
-"@
+$dropSql = "IF DB_ID('AdventureWorks2022') IS NOT NULL BEGIN ALTER DATABASE [AdventureWorks2022] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [AdventureWorks2022]; PRINT 'Database dropped.'; END ELSE PRINT 'Database did not exist, skipping drop.';"
 
-$dropSql | docker exec -i mssql-learn /opt/mssql-tools18/bin/sqlcmd `
+$container = if (Get-Command podman -ErrorAction SilentlyContinue) { "podman" } else { "docker" }
+$dropSql | & $container exec -i mssql-learn /opt/mssql-tools18/bin/sqlcmd `
     -S localhost -U sa -P $password -No
 
 if ($LASTEXITCODE -ne 0) {
