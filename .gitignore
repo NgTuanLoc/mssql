@@ -1,0 +1,15 @@
+# Secrets
+docker/.env
+.env
+
+# AdventureWorks backup file (large, downloaded separately)
+backups/*.bak
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local exercise scratch work (uncomment if you keep notes here)
+# lessons/**/scratch.sql
