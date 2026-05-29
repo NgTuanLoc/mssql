@@ -18,7 +18,7 @@ if (-not $password) {
 
 Write-Host "Dropping AdventureWorks2022..." -ForegroundColor Yellow
 
-$dropSql = @'
+$dropSql = @"
 IF DB_ID('AdventureWorks2022') IS NOT NULL
 BEGIN
     ALTER DATABASE [AdventureWorks2022] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
@@ -27,11 +27,10 @@ BEGIN
 END
 ELSE
     PRINT 'Database did not exist, skipping drop.';
-'@
+"@
 
-docker exec mssql-learn /opt/mssql-tools18/bin/sqlcmd `
-    -S localhost -U sa -P $password -No `
-    -Q $dropSql
+$dropSql | docker exec -i mssql-learn /opt/mssql-tools18/bin/sqlcmd `
+    -S localhost -U sa -P $password -No
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Drop failed."

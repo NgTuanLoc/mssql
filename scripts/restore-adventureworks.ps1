@@ -24,7 +24,7 @@ if (-not (Test-Path $bakPath)) {
 
 Write-Host "Restoring AdventureWorks2022 — this takes ~30 seconds..." -ForegroundColor Cyan
 
-$sql = @'
+$sql = @"
 RESTORE DATABASE [AdventureWorks2022]
 FROM DISK = N'/var/opt/mssql/backups/AdventureWorks2022.bak'
 WITH
@@ -32,11 +32,10 @@ WITH
     MOVE N'AdventureWorks2022_log' TO N'/var/opt/mssql/data/AdventureWorks2022_log.ldf',
     REPLACE,
     STATS = 10;
-'@
+"@
 
-docker exec mssql-learn /opt/mssql-tools18/bin/sqlcmd `
-    -S localhost -U sa -P $password -No `
-    -Q $sql
+$sql | docker exec -i mssql-learn /opt/mssql-tools18/bin/sqlcmd `
+    -S localhost -U sa -P $password -No
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "Restore complete." -ForegroundColor Green
