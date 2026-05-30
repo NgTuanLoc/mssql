@@ -107,10 +107,13 @@ SELECT TOP 10
     waiting_tasks_count,
     wait_time_ms / NULLIF(waiting_tasks_count, 0) AS AvgWaitMs
 FROM sys.dm_os_wait_stats
-WHERE wait_type NOT IN (   -- filter benign/idle waits
+WHERE wait_type NOT IN (   -- filter benign/idle waits (the real list is long; these are the common ones)
         'SLEEP_TASK','BROKER_TASK_STOP','XE_TIMER_EVENT','CHECKPOINT_QUEUE',
         'LAZYWRITER_SLEEP','REQUEST_FOR_DEADLOCK_SEARCH','SQLTRACE_INCREMENTAL_FLUSH_SLEEP',
-        'WAITFOR','DIRTY_PAGE_POLL','HADR_FILESTREAM_IOMGR_IOCOMPLETION','BROKER_RECEIVE_WAITFOR')
+        'WAITFOR','DIRTY_PAGE_POLL','HADR_FILESTREAM_IOMGR_IOCOMPLETION','BROKER_RECEIVE_WAITFOR',
+        'SOS_WORK_DISPATCHER','LOGMGR_QUEUE','QDS_PERSIST_TASK_MAIN_LOOP_SLEEP',
+        'DISPATCHER_QUEUE_SEMAPHORE','SP_SERVER_DIAGNOSTICS_SLEEP','BROKER_TO_FLUSH',
+        'PWAIT_EXTENSIBILITY_CLEANUP_TASK','QDS_ASYNC_QUEUE')
 ORDER BY wait_time_ms DESC;
 
 -- Example 7: Reset wait stats (dev only) so you can measure waits for a specific workload
