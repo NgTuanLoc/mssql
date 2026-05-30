@@ -456,12 +456,15 @@ ORDER BY qs.total_logical_reads DESC;
 -- =========================================================================
 
 -- Example 7: Make statistics stale, watch the estimate diverge, then fix it
--- Add many rows for one customer WITHOUT updating stats (simulate drift)
-INSERT lesson15.SalesOrderHeader
-SELECT * FROM lesson15.SalesOrderHeader WHERE CustomerID = 11000;  -- duplicates that customer
+-- Skew the distribution by reassigning many rows to CustomerID 11000 WITHOUT updating stats.
+-- (UPDATE avoids the identity/PK conflict that re-inserting rows would cause: SalesOrderID is
+--  an IDENTITY column copied by SELECT INTO and is the clustered PK.)
+UPDATE TOP (10000) lesson15.SalesOrderHeader
+SET CustomerID = 11000
+WHERE CustomerID <> 11000;
 GO
 
--- The optimizer still believes the OLD row count for CustomerID = 11000.
+-- The optimizer still believes the OLD (small) row count for CustomerID = 11000.
 -- Run with the actual plan (Ctrl+M) — Estimated rows will be far below Actual rows.
 SELECT SalesOrderID, OrderDate FROM lesson15.SalesOrderHeader WHERE CustomerID = 11000;
 
@@ -492,10 +495,10 @@ SELECT SalesOrderID, TotalDue FROM lesson15.SalesOrderHeader WHERE OrderDate >= 
 -- Your query here:
 
 
--- Exercise 4: Deliberately make statistics stale: insert a large batch of rows for
---             CustomerID = 11001 (duplicate existing ones) WITHOUT updating stats. Then run a
---             query filtering CustomerID = 11001 with the actual plan on and observe the
---             estimate is now too low. Finally fix it with UPDATE STATISTICS and re-run.
+-- Exercise 4: Deliberately make statistics stale: reassign a large batch of rows to
+--             CustomerID = 11001 via UPDATE (do NOT update stats yet). Then run a query
+--             filtering CustomerID = 11001 with the actual plan on and observe the estimate is
+--             now too low. Finally fix it with UPDATE STATISTICS and re-run.
 -- Your statements here:
 
 
@@ -532,9 +535,11 @@ WHERE st.text LIKE '%lesson15.SalesOrderHeader%'
 ORDER BY cp.usecounts DESC;
 
 -- Exercise 4: Make stats stale, observe, fix.
--- Approach: bulk-duplicate rows without UPDATE STATISTICS; the estimate lags reality.
-INSERT lesson15.SalesOrderHeader
-SELECT * FROM lesson15.SalesOrderHeader WHERE CustomerID = 11001;
+-- Approach: reassign many rows to one customer via UPDATE (no identity/PK conflict); the
+-- estimate lags reality until stats refresh.
+UPDATE TOP (10000) lesson15.SalesOrderHeader
+SET CustomerID = 11001
+WHERE CustomerID <> 11001;
 GO
 -- Run with actual plan on: Estimated rows << Actual rows for this customer.
 SELECT SalesOrderID, OrderDate FROM lesson15.SalesOrderHeader WHERE CustomerID = 11001;
@@ -646,18 +651,15 @@ CREATE SCHEMA lesson16;
 GO
 
 -- A table large enough to make buffer-pool and spill behaviour visible.
--- Start from SalesOrderDetail (~121k rows) and multiply it.
-SELECT TOP 0 * INTO lesson16.BigDetail FROM Sales.SalesOrderDetail;
-
--- Inflate to several hundred thousand rows by cross-joining a small multiplier.
+-- One-shot SELECT INTO with a CROSS JOIN multiplier (~121k rows x 4 = ~485k rows).
+-- Because the SELECT contains a JOIN, the IDENTITY property of SalesOrderDetailID is NOT
+-- carried to BigDetail, so there is no IDENTITY_INSERT conflict; the computed LineTotal
+-- column is materialised as a plain column. SELECT INTO copies no constraints/indexes.
 -- (First run may take a minute or two — this is expected.)
-INSERT lesson16.BigDetail
 SELECT sod.*
+INTO lesson16.BigDetail
 FROM Sales.SalesOrderDetail AS sod
 CROSS JOIN (SELECT TOP 4 object_id FROM sys.all_objects) AS m;
-
-ALTER TABLE lesson16.BigDetail
-    ADD ROWGUID2 UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID();  -- ensures uniqueness if needed
 
 UPDATE STATISTICS lesson16.BigDetail;
 
@@ -983,9 +985,9 @@ CREATE TABLE lesson17.Account (
 );
 INSERT lesson17.Account VALUES (1, N'Alice', 1000), (2, N'Bob', 500), (3, N'Carol', 250);
 
--- A larger table so a big UPDATE triggers lock escalation (row/page locks escalate to a table lock)
-SELECT TOP 0 * INTO lesson17.BigOrders FROM Sales.SalesOrderHeader;
-INSERT lesson17.BigOrders SELECT * FROM Sales.SalesOrderHeader;
+-- A larger table so a big UPDATE triggers lock escalation (row/page locks escalate to a table lock).
+-- Single SELECT INTO copy (no re-insert), then add the clustered PK.
+SELECT * INTO lesson17.BigOrders FROM Sales.SalesOrderHeader;
 ALTER TABLE lesson17.BigOrders ADD CONSTRAINT PK_lesson17_BigOrders PRIMARY KEY CLUSTERED (SalesOrderID);
 
 PRINT 'Lesson 17 setup complete.';
@@ -1317,12 +1319,10 @@ CREATE SCHEMA lesson18;
 GO
 
 -- Orders table seeded with a deliberately SKEWED distribution to provoke parameter sniffing:
--- one customer (99999) owns the vast majority of rows; everyone else has a handful.
-SELECT * INTO lesson18.Orders FROM Sales.SalesOrderHeader WHERE 1 = 0;
+-- one customer (99999) owns a large block of rows; everyone else has a handful.
+-- Single SELECT INTO copy (no re-insert), then add the clustered PK.
+SELECT * INTO lesson18.Orders FROM Sales.SalesOrderHeader;
 ALTER TABLE lesson18.Orders ADD CONSTRAINT PK_lesson18_Orders PRIMARY KEY CLUSTERED (SalesOrderID);
-
--- A few rows for many customers
-INSERT lesson18.Orders SELECT * FROM Sales.SalesOrderHeader;
 
 -- Re-key a large block to a single "whale" customer to create skew
 UPDATE TOP (20000) lesson18.Orders SET CustomerID = 99999;
@@ -1338,8 +1338,8 @@ CREATE TABLE lesson18.Customer (
 );
 INSERT lesson18.Customer (CustomerCode, FullName)
 SELECT TOP 20000
-    RIGHT('0000000000' + CAST(ROW_NUMBER() OVER (ORDER BY object_id) AS VARCHAR(10)), 10),
-    N'Customer ' + CAST(ROW_NUMBER() OVER (ORDER BY object_id) AS NVARCHAR(10))
+    RIGHT('0000000000' + CAST(ROW_NUMBER() OVER (ORDER BY a.object_id, b.object_id) AS VARCHAR(10)), 10),
+    N'Customer ' + CAST(ROW_NUMBER() OVER (ORDER BY a.object_id, b.object_id) AS NVARCHAR(10))
 FROM sys.all_objects a CROSS JOIN sys.all_objects b;
 
 -- A stored proc whose plan is sensitive to the first @CustomerID it is called with
