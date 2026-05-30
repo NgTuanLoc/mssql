@@ -5,7 +5,7 @@ GO
 -- Approach: count cached pages for this database_id and convert to MB.
 SELECT DB_NAME(database_id) AS DatabaseName,
        COUNT(*)             AS CachedPages,
-       COUNT(*) * 8 / 1024  AS CachedMB
+       COUNT(*) * 8 / 1024.0  AS CachedMB
 FROM sys.dm_os_buffer_descriptors
 WHERE database_id = DB_ID('AdventureWorks2022')
 GROUP BY database_id;
