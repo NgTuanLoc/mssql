@@ -51,12 +51,12 @@ The AdventureWorks2022 backup file is not included in this repository (it is ~20
 
 **ADO.NET connection string:**
 ```
-Server=localhost,1433;Database=AdventureWorks2022;User Id=sa;Password=<your_password>;TrustServerCertificate=True;
+Server=localhost,1433;Database=AdventureWorks2022;User Id=sa;Password=YourStr0ngP@ssword!;TrustServerCertificate=True;
 ```
 
 **ODBC / DSN:**
 ```
-Driver={ODBC Driver 18 for SQL Server};Server=localhost,1433;Database=AdventureWorks2022;Uid=sa;Pwd=<your_password>;TrustServerCertificate=yes;
+Driver={ODBC Driver 18 for SQL Server};Server=localhost,1433;Database=AdventureWorks2022;Uid=sa;Pwd=YourStr0ngP@ssword!;TrustServerCertificate=yes;
 ```
 
 > `TrustServerCertificate=True` is required because the container uses a self-signed certificate.
