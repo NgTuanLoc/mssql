@@ -21,14 +21,26 @@ The AdventureWorks2022 backup file is not included in this repository (it is ~20
 
 4. Run the restore script (container must already be running):
 
+   **macOS / Linux:**
+   ```bash
+   ./scripts/mac/restore-adventureworks.sh
+   ```
+
+   **Windows (PowerShell):**
    ```powershell
-   .\scripts\restore-adventureworks.ps1
+   .\scripts\win\restore-adventureworks.ps1
    ```
 
 5. Verify:
 
+   **macOS / Linux:**
+   ```bash
+   ./scripts/mac/connect.sh
+   ```
+
+   **Windows (PowerShell):**
    ```powershell
-   .\scripts\connect.ps1
+   .\scripts\win\connect.ps1
    ```
 
    Then in the sqlcmd prompt:
@@ -67,8 +79,14 @@ Driver={ODBC Driver 18 for SQL Server};Server=localhost,1433;Database=AdventureW
 
 If you make changes you want to undo, run:
 
+**macOS / Linux:**
+```bash
+./scripts/mac/reset-db.sh
+```
+
+**Windows (PowerShell):**
 ```powershell
-.\scripts\reset-db.ps1
+.\scripts\win\reset-db.ps1
 ```
 
 This drops and re-restores AdventureWorks (including any lesson schemas you created).
