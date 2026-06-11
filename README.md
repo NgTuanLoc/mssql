@@ -48,6 +48,7 @@ Connect in SSMS / Azure Data Studio: `localhost,1433` · Login: `sa` · Password
 | 2 — Working with Data | 05–08 | Aggregations, Subqueries/CTEs, Window Functions, DML |
 | 3 — Programming MSSQL | 09–11 | DDL/Constraints, Views/Procs/Functions, Transactions/Concurrency |
 | 4 — Performance | 12–13 | Indexes, Execution Plans & Query Tuning |
+| Capstone | 18 | Complex Queries (CTE pipelines, APPLY, patterns) |
 
 Each lesson directory contains `README.md` (concepts + examples), `setup.sql` (run once), `exercises.sql`, and `exercises-solutions.sql`.
 

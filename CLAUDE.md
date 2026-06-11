@@ -34,7 +34,7 @@ These are firm conventions from the design spec (`docs/superpowers/specs/2026-05
 - **Each lesson owns a dedicated schema named `lessonNN`** (e.g. `lesson17`) inside AdventureWorks2022. `setup.sql` must be **idempotent**: drop all tables in the schema, drop the schema, recreate everything. Lessons needing nothing beyond AdventureWorks still ship a minimal `setup.sql` creating the empty schema.
 - Lessons must be runnable end-to-end without the learner designing or seeding their own data — AdventureWorks plus `setup.sql` provides everything.
 - `exercises-solutions.sql` has one solution per exercise with a 1–2 line comment explaining the approach, not just the answer.
-- Curriculum tiers: 01–04 foundations, 05–08 working with data, 09–11 programming, 12–13 performance, 14–17 internals (storage, optimizer, memory/log, locking/waits). The internals tier has its own design spec (`docs/superpowers/specs/2026-05-30-mssql-internals-tier5-design.md`).
+- Curriculum tiers: 01–04 foundations, 05–08 working with data, 09–11 programming, 12–13 performance, 14–17 internals (storage, optimizer, memory/log, locking/waits), 18 capstone (complex queries). The internals tier has its own design spec (`docs/superpowers/specs/2026-05-30-mssql-internals-tier5-design.md`); the capstone's is `docs/superpowers/specs/2026-06-11-complex-queries-lesson-design.md`.
 - `cheatsheets/` are standalone reference docs, independent of lesson order.
 
 ## Commit style
