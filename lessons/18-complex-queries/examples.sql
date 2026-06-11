@@ -2,7 +2,7 @@ USE AdventureWorks2022;
 GO
 
 ---------------------------------------------------------------------------
--- CONCEPT 1+2: The case-study pipeline, built step by step.
+-- CONCEPTS 1 & 2: The case-study pipeline, built step by step.
 -- Business question: "For each territory: monthly revenue, month-over-month
 -- growth, top 3 products, and each product's contribution %."
 ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ WITH OrderLines AS (
     FROM Sales.SalesOrderHeader AS soh
     JOIN Sales.SalesOrderDetail AS sod ON sod.SalesOrderID = soh.SalesOrderID
 )
-SELECT TOP (10) * FROM OrderLines;   -- debug technique: SELECT from the intermediate step
+SELECT TOP (10) * FROM OrderLines;   -- debug technique: eyeball the step's shape/rows (use explicit columns in real code)
 
 -- Example 2: Step B — first aggregation layer (territory × month)
 WITH OrderLines AS (
@@ -35,6 +35,8 @@ MonthlyTerritory AS (
 SELECT TOP (10) * FROM MonthlyTerritory ORDER BY TerritoryID, OrderMonth;
 
 -- Example 3: Step C — window function OVER the grouped result (aggregate of an aggregate)
+-- Note: LAG appears three times here for compactness. Example 14 shows the clean
+-- form: compute LAG once in its own CTE, then reference the column.
 WITH OrderLines AS (
     SELECT soh.TerritoryID,
            DATEFROMPARTS(YEAR(soh.OrderDate), MONTH(soh.OrderDate), 1) AS OrderMonth,
@@ -55,6 +57,7 @@ SELECT TerritoryID, OrderMonth, MonthRevenue,
             AS DECIMAL(10,1)) AS GrowthPct
 FROM MonthlyTerritory
 ORDER BY TerritoryID, OrderMonth;
+GO
 
 ---------------------------------------------------------------------------
 -- CONCEPT 3: CROSS / OUTER APPLY
@@ -84,6 +87,7 @@ OUTER APPLY (
 ) AS lastSale
 WHERE lastSale.OrderDate IS NULL;   -- only possible with OUTER APPLY
 -- (504 products in the catalog; 238 have never been sold)
+GO
 
 ---------------------------------------------------------------------------
 -- CONCEPT 4: PIVOT / UNPIVOT and conditional aggregation
@@ -113,6 +117,8 @@ GROUP BY st.Name
 ORDER BY Territory;
 
 -- Example 8: UNPIVOT — wide salesperson measure columns back into rows
+-- Note: UNPIVOT silently drops rows where the value is NULL (SalesQuota often is).
+-- If NULL rows matter, use conditional aggregation instead.
 SELECT BusinessEntityID, MeasureName, MeasureValue
 FROM (
     SELECT BusinessEntityID,
@@ -123,12 +129,15 @@ FROM (
 ) AS src
 UNPIVOT (MeasureValue FOR MeasureName IN (CurrentQuota, YearToDate, LastYear)) AS unp
 ORDER BY BusinessEntityID, MeasureName;
+GO
 
 ---------------------------------------------------------------------------
 -- CONCEPT 5: Classic patterns
 ---------------------------------------------------------------------------
 
 -- Example 9: top-N per group with ROW_NUMBER (compare with Example 4's APPLY version)
+-- APPLY reads naturally for small fixed N; ROW_NUMBER lets you also keep the rank,
+-- filter ranges (rows 4-6), or switch to RANK/DENSE_RANK for ties.
 WITH Ranked AS (
     SELECT st.Name AS Territory, soh.SalesOrderID, soh.TotalDue,
            ROW_NUMBER() OVER (PARTITION BY st.TerritoryID ORDER BY soh.TotalDue DESC) AS rn
@@ -147,16 +156,17 @@ FROM Production.Product AS p
 ORDER BY p.ListPrice DESC;
 
 -- Example 11: de-duplication with ROW_NUMBER (preview only — the DELETE version
--- is exercise 6)
+-- is exercise 6). rn = 1 marks the keeper per email; rows with rn > 1 are the
+-- copies a DELETE would remove.
 WITH Ranked AS (
     SELECT *, ROW_NUMBER() OVER (PARTITION BY Email
                                  ORDER BY LoadDate DESC, StagingID DESC) AS rn
     FROM lesson18.CustomerStaging
 )
-SELECT Email, COUNT(*) AS Copies
+SELECT StagingID, Email, LoadDate, rn
 FROM Ranked
-GROUP BY Email
-HAVING COUNT(*) > 1;
+WHERE rn > 1
+ORDER BY Email, rn;
 
 -- Example 12: gaps & islands — consecutive visit streaks per member.
 -- Trick: VisitDate minus its row number is CONSTANT within a consecutive run.
@@ -188,6 +198,7 @@ SELECT OrderMonth, Revenue,
        CAST(100.0 * Revenue / SUM(Revenue) OVER () AS DECIMAL(5,2)) AS PctOfAllTime
 FROM MonthlySales
 ORDER BY OrderMonth;
+GO
 
 ---------------------------------------------------------------------------
 -- THE ASSEMBLED CASE STUDY: pipeline + window functions + APPLY together
@@ -232,3 +243,4 @@ CROSS APPLY (
     ORDER BY SUM(ol.LineTotal) DESC
 ) AS top3
 ORDER BY Territory, g.OrderMonth, top3.ProductRevenue DESC;
+GO
