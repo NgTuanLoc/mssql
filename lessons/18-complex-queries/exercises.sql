@@ -58,10 +58,9 @@ WHERE t.TotalSold > (SELECT AVG(x.TotalSold)
 
 ---------------------------------------------------------------------------
 -- Exercise 8 (final boss): The purchasing department wants the case-study
--- report for VENDORS: for each vendor — monthly purchase total (from
--- Purchasing.PurchaseOrderHeader.TotalDue), month-over-month growth %, and
--- the top 2 products by line total that month (from
--- Purchasing.PurchaseOrderDetail), with each product's contribution % to
--- that vendor's monthly total.
+-- report for VENDORS: for each vendor — monthly purchase total (sum of
+-- LineTotal from Purchasing.PurchaseOrderDetail), month-over-month growth %,
+-- and the top 2 products by line total that month, with each product's
+-- contribution % to that vendor's monthly total.
 -- Structure it as a pipeline: lines → vendor-month totals → growth → APPLY top products.
 ---------------------------------------------------------------------------
