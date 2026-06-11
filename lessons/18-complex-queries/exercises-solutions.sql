@@ -3,8 +3,9 @@ GO
 -- Lesson 18 solutions. Each solution has a short note on the approach.
 
 ---------------------------------------------------------------------------
--- Solution 1: Name each step. ProductTotals computes once; the AVG over it
--- reuses the same CTE instead of repeating the derived table twice.
+-- Solution 1: Name each step. ProductTotals is DEFINED once instead of
+-- pasting the same derived table twice. (It's still referenced twice, so it
+-- executes twice — see Pitfalls — but the logic now lives in one place.)
 ---------------------------------------------------------------------------
 WITH ProductTotals AS (
     SELECT ProductID, SUM(LineTotal) AS TotalSold
