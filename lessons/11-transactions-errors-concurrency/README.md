@@ -97,7 +97,7 @@ SQL Server detects the cycle and kills one session (the "deadlock victim"). The 
 - RCSI adds TempDB write overhead for row versions — acceptable for most OLTP, but monitor TempDB growth.
 
 ## Cheatsheet link
-See `cheatsheets/00-tsql-syntax.md`
+See `cheatsheets/01-tsql-syntax.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Re-run `setup.sql` to reset Account balances. Solutions in `exercises-solutions.sql`.

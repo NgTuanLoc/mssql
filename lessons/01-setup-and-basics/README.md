@@ -66,7 +66,7 @@ SELECT DISTINCT Color  FROM Production.Product;        -- unique values
 - Without `WHERE`, `UPDATE` and `DELETE` affect every row in the table — always confirm the predicate first.
 
 ## Cheatsheet link
-See `cheatsheets/00-tsql-syntax.md`
+See `cheatsheets/01-tsql-syntax.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Solutions in `exercises-solutions.sql` — peek only after attempting.

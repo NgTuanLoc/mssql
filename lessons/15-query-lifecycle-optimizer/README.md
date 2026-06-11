@@ -49,7 +49,7 @@ If data changes a lot but statistics don't refresh, the optimizer plans for the 
 - A cached plan compiled for one parameter value may be reused for a very different one — that is parameter sniffing (covered in lessons 13 and 18).
 
 ## Cheatsheet link
-See `cheatsheets/05-execution-plans.md`
+See `cheatsheets/06-execution-plans.md`
 
 ## Exercises
 Open `exercises.sql` and work them in order. Solutions in `exercises-solutions.sql`.

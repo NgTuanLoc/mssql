@@ -51,7 +51,7 @@ Every time a task can't proceed it records a **wait**. `sys.dm_os_wait_stats` (c
 - Deadlock graphs age out of the `system_health` ring buffer — capture promptly.
 
 ## Cheatsheet link
-See `cheatsheets/05-execution-plans.md` (and lesson 11 for isolation levels)
+See `cheatsheets/06-execution-plans.md` (and lesson 11 for isolation levels)
 
 ## Exercises
 Open `exercises.sql` and work them in order (some need two sessions). Solutions in `exercises-solutions.sql`.

@@ -71,7 +71,7 @@ NULL in a grouping column inside a ROLLUP/CUBE result means "this is a subtotal 
 - ROLLUP NULL vs real NULL — use `GROUPING(col)` to tell them apart.
 
 ## Cheatsheet link
-See `cheatsheets/00-tsql-syntax.md`
+See `cheatsheets/01-tsql-syntax.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Solutions in `exercises-solutions.sql`.

@@ -68,7 +68,7 @@ CREATE INDEX IX_Table_Col
 - **`sys.dm_db_index_usage_stats` resets on restart** — don't use it immediately after the container restarts.
 
 ## Cheatsheet link
-See `cheatsheets/04-indexes.md`
+See `cheatsheets/05-indexes.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Re-run `setup.sql` to reset indexes. Solutions in `exercises-solutions.sql`.

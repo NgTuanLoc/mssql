@@ -66,7 +66,7 @@ LineTotal AS (Quantity * UnitPrice) PERSISTED
 - `UNIQUE` allows multiple NULL values (NULL ≠ NULL in SQL); only one per column if the column is `NOT NULL`.
 
 ## Cheatsheet link
-See `cheatsheets/00-tsql-syntax.md`
+See `cheatsheets/01-tsql-syntax.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Solutions in `exercises-solutions.sql`.

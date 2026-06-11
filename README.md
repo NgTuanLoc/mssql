@@ -63,5 +63,5 @@ Scripts live in `scripts/mac/` (bash) and `scripts/win/` (PowerShell).
 
 ## Reference
 
-- `cheatsheets/` — standalone T-SQL reference docs (syntax, data types, joins, window functions, indexes, execution plans)
+- `cheatsheets/` — standalone T-SQL reference docs (how MSSQL works, syntax, data types, joins, window functions, indexes, execution plans). Start with `00-how-mssql-works.md` for the architecture, SQL logical execution order, and plan-reading mental model.
 - `data/adventureworks/README.md` — how to download the sample database

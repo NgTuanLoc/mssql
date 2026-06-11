@@ -58,7 +58,7 @@ CAST(SYSDATETIME() AS DATE)            -- today's date, no time component
 - `YEAR(col) = 2024` in a `WHERE` clause is non-SARGable; prefer a range: `col >= '2024-01-01' AND col < '2025-01-01'`.
 
 ## Cheatsheet link
-See `cheatsheets/01-data-types.md`
+See `cheatsheets/02-data-types.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Solutions in `exercises-solutions.sql`.

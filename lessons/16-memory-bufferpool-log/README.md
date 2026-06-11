@@ -47,7 +47,7 @@ Sorts and hash joins request a **memory grant** before executing, sized from car
 - Memory-grant numbers vary by server memory and DOP — compare direction, not absolute KB.
 
 ## Cheatsheet link
-See `cheatsheets/05-execution-plans.md`
+See `cheatsheets/06-execution-plans.md`
 
 ## Exercises
 Open `exercises.sql` and work them in order. Solutions in `exercises-solutions.sql`.

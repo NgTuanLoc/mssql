@@ -68,7 +68,7 @@ Requires `ORDER BY`. Use for result-set pagination.
 - `LIKE` is case-insensitive under most collations — confirm with `SELECT SERVERPROPERTY('Collation')`.
 
 ## Cheatsheet link
-See `cheatsheets/00-tsql-syntax.md`
+See `cheatsheets/01-tsql-syntax.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Solutions in `exercises-solutions.sql`.

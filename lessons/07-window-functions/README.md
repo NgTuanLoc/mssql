@@ -59,7 +59,7 @@ Use `ROWS` (physical), not `RANGE` (logical), unless you specifically want ties 
 - Window functions cannot be used in `WHERE` — wrap in a subquery or CTE.
 
 ## Cheatsheet link
-See `cheatsheets/03-window-functions.md`
+See `cheatsheets/04-window-functions.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Solutions in `exercises-solutions.sql`.

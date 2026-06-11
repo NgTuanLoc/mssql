@@ -77,7 +77,7 @@ FROM table OUTER APPLY fn(table.col) AS t
 - Proc parameters cannot have table types passed from external clients without TVP (Table-Valued Parameters) — out of scope for this lesson.
 
 ## Cheatsheet link
-See `cheatsheets/00-tsql-syntax.md`
+See `cheatsheets/01-tsql-syntax.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Solutions in `exercises-solutions.sql`.

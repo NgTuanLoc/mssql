@@ -82,7 +82,7 @@ SELECT * FROM R;
 - Recursive CTEs default to 100 recursion levels; set `OPTION (MAXRECURSION 0)` for unlimited (be careful).
 
 ## Cheatsheet link
-See `cheatsheets/00-tsql-syntax.md`
+See `cheatsheets/01-tsql-syntax.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Solutions in `exercises-solutions.sql`.

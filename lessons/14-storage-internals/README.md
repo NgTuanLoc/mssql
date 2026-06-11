@@ -48,7 +48,7 @@ Everything in SQL Server is stored in 8KB pages. A page has a 96-byte header, th
 - `%%physloc%%` changes when a row moves — it is not a stable key.
 
 ## Cheatsheet link
-See `cheatsheets/04-indexes.md`
+See `cheatsheets/05-indexes.md`
 
 ## Exercises
 Open `exercises.sql` and work them in order. Solutions in `exercises-solutions.sql`.

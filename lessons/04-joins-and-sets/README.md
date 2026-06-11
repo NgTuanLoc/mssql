@@ -59,7 +59,7 @@ All require the same number of columns with compatible types. Column names come 
 - **Self-join without aliasing:** you must alias both copies of the table or SQL Server errors.
 
 ## Cheatsheet link
-See `cheatsheets/02-joins-and-sets.md`
+See `cheatsheets/03-joins-and-sets.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Solutions in `exercises-solutions.sql`.

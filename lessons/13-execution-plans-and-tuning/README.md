@@ -96,7 +96,7 @@ OPTION (RECOMPILE)
 - Fixing parameter sniffing with `RECOMPILE` on every execution — expensive; use `OPTIMIZE FOR UNKNOWN` first.
 
 ## Cheatsheet link
-See `cheatsheets/05-execution-plans.md`
+See `cheatsheets/06-execution-plans.md`
 
 ## Exercises
 Open `exercises.sql` with SSMS and enable the actual execution plan (Ctrl+M) before running. Solutions in `exercises-solutions.sql`.

@@ -82,7 +82,7 @@ WHEN NOT MATCHED BY SOURCE THEN
 - `DELETE` from a table with FK constraints will fail if child rows exist.
 
 ## Cheatsheet link
-See `cheatsheets/00-tsql-syntax.md`
+See `cheatsheets/01-tsql-syntax.md`
 
 ## Exercises
 Open `exercises.sql` and try them in order. Re-run `setup.sql` to reset data. Solutions in `exercises-solutions.sql`.
