@@ -55,7 +55,9 @@ ORDER BY st.Name, r.rn;
 
 ---------------------------------------------------------------------------
 -- Solution 4: OUTER APPLY keeps salespeople with no orders (NULL columns);
--- CROSS APPLY would silently drop them.
+-- CROSS APPLY would silently drop them. (In this dataset every salesperson
+-- happens to have orders, so both return the same rows — OUTER is still the
+-- right tool for the stated requirement.)
 ---------------------------------------------------------------------------
 SELECT sp.BusinessEntityID, recent.SalesOrderID, recent.OrderDate, recent.TotalDue
 FROM Sales.SalesPerson AS sp
