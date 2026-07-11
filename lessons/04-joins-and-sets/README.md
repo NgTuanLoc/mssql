@@ -47,12 +47,12 @@ side points to it. Change which side is preserved and you change which unmatched
 survive.
 
 The second half of the mental model is **fan-out**: a join multiplies rows wherever the
-relationship is one-to-many. Order 43672 has 1 header row (`TotalDue = 1791.19`) and 3
-detail rows (`ProductID` 711, 712, 714):
+relationship is one-to-many. Order 43672 has 1 header row (`TotalDue = 6895.4100`) and 3
+detail rows (`ProductID` 709, 774, 776):
 
 ```
 header (1 row)  JOIN  detail (3 rows)  →  joined result: 3 rows
-TotalDue 1791.19 is copied onto ALL THREE — SUM(TotalDue) after the join = 3 × 1791.19.
+TotalDue 6895.4100 is copied onto ALL THREE — SUM(TotalDue) after the join = 3 × 6895.4100.
 ```
 
 One header row × 3 detail rows = 3 output rows, each carrying a **repeated copy** of the

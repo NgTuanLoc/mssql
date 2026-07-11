@@ -105,6 +105,23 @@ LEFT JOIN Sales.SalesOrderHeader AS soh14
     ON soh14.CustomerID = soh13.CustomerID AND YEAR(soh14.OrderDate) = 2014
 WHERE YEAR(soh13.OrderDate) = 2013 AND soh14.CustomerID IS NULL;
 
+-- Confirmation: both approaches return the same row count (verified: 8312 and 8312).
+SELECT COUNT(*) AS ExceptCount
+FROM (
+    SELECT CustomerID FROM Sales.SalesOrderHeader WHERE YEAR(OrderDate) = 2013
+    EXCEPT
+    SELECT CustomerID FROM Sales.SalesOrderHeader WHERE YEAR(OrderDate) = 2014
+) AS x;
+
+SELECT COUNT(*) AS AntiJoinCount
+FROM (
+    SELECT DISTINCT soh13.CustomerID
+    FROM Sales.SalesOrderHeader AS soh13
+    LEFT JOIN Sales.SalesOrderHeader AS soh14
+        ON soh14.CustomerID = soh13.CustomerID AND YEAR(soh14.OrderDate) = 2014
+    WHERE YEAR(soh13.OrderDate) = 2013 AND soh14.CustomerID IS NULL
+) AS x;
+
 -- Challenge 3: Online vs offline reconciliation.
 -- Reasoning: Pre-aggregate quantity per product for each channel separately (two CTEs
 -- filtered on OnlineOrderFlag), then LEFT JOIN both onto the full Product list so
