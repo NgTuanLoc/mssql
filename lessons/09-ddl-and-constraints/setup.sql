@@ -18,6 +18,13 @@ BEGIN
     FROM sys.tables WHERE schema_id = SCHEMA_ID('lesson09');
     EXEC sp_executesql @sql;
 
+    -- Sequences (e.g. a shared IDENTITY-alternative created during exercises) also
+    -- reference the schema and block DROP SCHEMA if left behind.
+    SET @sql = N'';
+    SELECT @sql += 'DROP SEQUENCE lesson09.' + QUOTENAME(name) + ';' + CHAR(10)
+    FROM sys.sequences WHERE schema_id = SCHEMA_ID('lesson09');
+    EXEC sp_executesql @sql;
+
     DROP SCHEMA lesson09;
 END
 GO
