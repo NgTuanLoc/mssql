@@ -22,10 +22,15 @@ CREATE TABLE lesson07.MonthlySales (
     PRIMARY KEY (SaleYear, SaleMonth, Region)
 );
 
+-- North and South trend smoothly upward. West rises steadily then takes a sharp
+-- one-month dip in month 4 (12000) — a deliberate slump so moving-average and
+-- anomaly-detection demos (see the challenges) have a positive case to catch.
 INSERT lesson07.MonthlySales (SaleYear, SaleMonth, Region, Revenue) VALUES
     (2023, 1,  'North', 12000), (2023, 2,  'North', 15000), (2023, 3,  'North', 11000),
     (2023, 1,  'South', 8000),  (2023, 2,  'South', 9500),  (2023, 3,  'South', 10200),
     (2023, 4,  'North', 18000), (2023, 5,  'North', 16500), (2023, 6,  'North', 19000),
-    (2023, 4,  'South', 11000), (2023, 5,  'South', 12400), (2023, 6,  'South', 13100);
+    (2023, 4,  'South', 11000), (2023, 5,  'South', 12400), (2023, 6,  'South', 13100),
+    (2023, 1,  'West', 20000),  (2023, 2,  'West', 22000),  (2023, 3,  'West', 24000),
+    (2023, 4,  'West', 12000),  (2023, 5,  'West', 23000),  (2023, 6,  'West', 25000);
 
 PRINT 'Lesson 07 setup complete.';
