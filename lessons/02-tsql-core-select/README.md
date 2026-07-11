@@ -42,9 +42,9 @@ FROM Production.Product ORDER BY PriceWithTax DESC;
 ```
 Name                     PriceWithTax
 ------------------------ ------------
-Road-150 Red, 62             3936.097
-Road-150 Red, 44             3936.097
-Road-150 Red, 48             3936.097
+Road-150 Red, 62           3936.09700
+Road-150 Red, 44           3936.09700
+Road-150 Red, 48           3936.09700
 ```
 
 ## Setup
@@ -107,9 +107,8 @@ NULL        NULL        UNKNOWN
 ```
 
 Note the last row: `NULL = NULL` is `UNKNOWN`, not `TRUE` — two unknowns aren't provably
-equal. `WHERE` drops a row whose predicate is `UNKNOWN`, same as `FALSE`, but it was never
-resolved either way — exactly why `Color <> 'Red'` drops rows with no recorded color
-instead of keeping them (see Pitfalls).
+equal. `WHERE` drops an `UNKNOWN` row just like a `FALSE` one, but it was never resolved
+either way — exactly why `Color <> 'Red'` drops rows with no recorded color (see Pitfalls).
 
 **Reach for this when** a query returns fewer rows than the data suggests it should —
 check whether a filtered column can be `NULL` before suspecting the data itself.
@@ -138,8 +137,8 @@ ListPrice    Ties
 ```
 
 56 different prices have 2+ products sharing them — `ORDER BY ListPrice DESC` alone can
-return those tied rows in any order, and a new index or updated statistics can silently
-reorder them. Add a unique tie-breaker column and the order becomes reproducible:
+return tied rows in any order, and a new index can silently reorder them between runs.
+Add a unique tie-breaker column and the order becomes reproducible:
 
 ```sql
 SELECT ProductID, Name, ListPrice
@@ -162,25 +161,27 @@ row order must be stable across runs, not just "usually looks right."
 ### 4. `OFFSET`/`FETCH` — paging results
 
 `OFFSET n ROWS FETCH NEXT m ROWS ONLY` requires an `ORDER BY` and skips `n` rows before
-returning the next `m` — page 3 at 10 rows/page skips the first 20:
+returning the next `m` — page 2 at 10 rows/page skips the first 10:
 
 ```sql
-SELECT ProductID, Name, ListPrice
+SELECT ProductID, Name
 FROM Production.Product
-WHERE ListPrice > 0
-ORDER BY ListPrice DESC, ProductID
-OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY;
+ORDER BY Name
+OFFSET 10 ROWS FETCH NEXT 10 ROWS ONLY;
 ```
 
 ```
-ProductID   Name                       ListPrice
------------ -------------------------- -----------
-796         Road-250 Black, 58         2443.3500
-954         Touring-1000 Yellow, 46    2384.0700
-955         Touring-1000 Yellow, 50    2384.0700
+ProductID   Name
+----------- -----------------
+322         Chainring
+320         Chainring Bolts
+321         Chainring Nut
 ```
 
-**Reach for this when** you need result-set pagination — and always pair it with a fully
+`Name` is unique here, so `ORDER BY Name` alone is deterministic — paging on a column
+with ties (like `ListPrice`) needs the concept-3 tie-breaker too (Challenge 1).
+
+**Reach for this when** you need result-set pagination — and always pair it with a
 deterministic `ORDER BY`, or page boundaries can shift or duplicate rows between requests.
 
 ## Worked examples
@@ -197,21 +198,21 @@ deterministic `ORDER BY`, or page boundaries can shift or duplicate rows between
 
 ## Pitfalls
 
-- **`<> 'Red'` silently drops rows with an unknown color, not just non-red ones.** Of 504
-  products, 38 are `Red`, 248 have `Color IS NULL`, and the naive `<>` keeps only the 218
-  that are non-`NULL` and non-red:
+- **`<>` silently drops rows where the column is `NULL`, not just different values.** Of
+  504 products, 82 have `Class = 'H'`, 257 have `Class IS NULL`, and the naive `<>` keeps
+  only the 165 that are non-`NULL` and non-`'H'`:
   ```sql
-  SELECT SUM(CASE WHEN Color = 'Red' THEN 1 ELSE 0 END)  AS RedCount,
-         SUM(CASE WHEN Color <> 'Red' THEN 1 ELSE 0 END) AS NotRedNaive,
-         SUM(CASE WHEN Color IS NULL THEN 1 ELSE 0 END)  AS NullColor
-  FROM Production.Product;  -- RedCount 38, NotRedNaive 218, NullColor 248
+  SELECT SUM(CASE WHEN Class = 'H' THEN 1 ELSE 0 END)   AS HighClass,
+         SUM(CASE WHEN Class <> 'H' THEN 1 ELSE 0 END)  AS NotHighNaive,
+         SUM(CASE WHEN Class IS NULL THEN 1 ELSE 0 END) AS NullClass
+  FROM Production.Product;  -- HighClass 82, NotHighNaive 165, NullClass 257
   ```
-  The correct "not red" puts the `NULL`s back: `WHERE Color <> 'Red' OR Color IS NULL` →
-  466 rows (`504 − 38`).
+  The correct "not high-class" puts the `NULL`s back: `WHERE Class <> 'H' OR Class IS
+  NULL` → 422 rows (`504 − 82`). The hook's `Color <> 'Red'` report fails the same way.
 
 - **`WHERE col = NULL` matches nothing, ever** — not even other `NULL`s (concept 2):
-  `Color = NULL` returns 0 rows against 504 products; `Color IS NULL` correctly returns
-  248. Always use `IS NULL` / `IS NOT NULL`, never `=`/`<>` against `NULL`.
+  `Color = NULL` returns 0 rows; `Color IS NULL` correctly returns 248. Always use
+  `IS NULL` / `IS NOT NULL`, never `=`/`<>` against `NULL`.
 
 - **`NOT IN` with a `NULL` anywhere in the list returns zero rows for everything.**
   `SalesPersonID` is `NULL` for online orders (27,659 of 31,465 rows):
@@ -231,9 +232,8 @@ deterministic `ORDER BY`, or page boundaries can shift or duplicate rows between
   SELECT COUNT(*) FROM Production.Product
   WHERE ModifiedDate >= '2014-02-01' AND ModifiedDate < '2014-02-09';          -- 504 rows
   ```
-  The literal `'2014-02-08'` parses as midnight, so `BETWEEN`'s inclusive upper bound
-  still excludes every row modified later that day. Use a half-open range
-  (`>= start AND < end`) for date/time boundaries instead.
+  The literal `'2014-02-08'` parses as midnight, so `BETWEEN`'s inclusive upper bound still
+  excludes every row modified later that day. Use a half-open range (`>= start AND < end`).
 
 - **`LIKE` is case-insensitive under most collations.** AdventureWorks2022 uses
   `SQL_Latin1_General_CP1_CI_AS` (`CI`, same collation behind lesson 01's `=` pitfall), so

@@ -89,13 +89,13 @@ ORDER BY ProductID;
 
 -- Challenge 4: Orders from the last 30 days of available data, half-open range.
 -- Reasoning: "Last 30 days of available data" must anchor to MAX(OrderDate), not today's
---   date — a variable holds that scalar subquery result once. The half-open range
---   (>= start AND < end) sidesteps BETWEEN's inclusive-upper-bound trap from this lesson's
---   Pitfalls (a DATETIME literal parses as midnight). Tempting-but-wrong: `BETWEEN
---   DATEADD(DAY,-30,@Max) AND @Max` — inclusive on both ends, but silently drops any order
---   timestamped after midnight on the very last day.
+--   date — a variable holds that scalar subquery result once. A 30-day window ending on
+--   the max day is [MAX−29, MAX+1) half-open: subtracting 30 would span 31 calendar days.
+--   The `< end` upper bound sidesteps BETWEEN's inclusive-midnight trap from this lesson's
+--   Pitfalls. Tempting-but-wrong: `BETWEEN DATEADD(DAY,-30,@Max) AND @Max` — 31 days wide
+--   AND silently drops any order timestamped after midnight on the very last day.
 DECLARE @MaxOrderDate DATETIME = (SELECT MAX(OrderDate) FROM Sales.SalesOrderHeader);
-DECLARE @StartDate DATETIME = DATEADD(DAY, -30, @MaxOrderDate);
+DECLARE @StartDate DATETIME = DATEADD(DAY, -29, @MaxOrderDate);
 DECLARE @EndDate DATETIME = DATEADD(DAY, 1, @MaxOrderDate);
 
 SELECT SalesOrderID, OrderDate, TotalDue
