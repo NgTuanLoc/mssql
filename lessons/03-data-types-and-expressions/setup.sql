@@ -35,4 +35,17 @@ VALUES
     ('C003', N'Café',    0.0100,    0.0100,    '2000-01-01'),
     ('D004', N'正確',    50000.00,  50000.00,  '1975-03-22');
 
+-- Messy date strings in mixed formats, for Challenge 4 (TRY_CONVERT style-chasing).
+CREATE TABLE lesson03.MixedDates (
+    ID       INT           IDENTITY(1,1) PRIMARY KEY,
+    RawValue VARCHAR(20)   NOT NULL
+);
+
+INSERT lesson03.MixedDates (RawValue)
+VALUES
+    ('2014-03-01'),   -- ISO (style 120)
+    ('03/15/2014'),   -- US slash (style 101)
+    ('20140401'),     -- compact (style 112)
+    ('not a date');   -- unparseable by any style
+
 PRINT 'Lesson 03 setup complete.';

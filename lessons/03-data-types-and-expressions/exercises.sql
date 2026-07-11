@@ -30,3 +30,43 @@ GO
 --             IsNumeric (1 if the cast succeeded, 0 if it returned NULL).
 -- Expected columns: ProductNumber, CastResult, IsNumeric
 -- Your query here:
+
+
+------------------------------------------------------------
+-- CHALLENGES
+-- Harder problems. They may combine this lesson's topic with
+-- earlier lessons, and usually need 2+ concepts in one query.
+------------------------------------------------------------
+
+-- Challenge 1: Demonstrate the MONEY rounding trap: split $100.00 into 3 equal
+-- parts with MONEY and with DECIMAL(19,4), sum the parts back, and show the
+-- difference in cents in one result row.
+-- Expected columns: MoneyTotal, DecimalTotal, MoneyLostCents
+-- Your query here:
+
+
+-- Challenge 2: Group all 2013 orders into fiscal quarters where the fiscal
+-- year starts July 1 (Q1 = Jul–Sep). Compute the fiscal quarter from
+-- OrderDate with date functions — no CASE ladder over month numbers.
+-- Expected columns: FiscalYear, FiscalQuarter, OrderCount, TotalDue
+-- Hint: DATEADD the date back 6 months, then DATEPART quarter/year of the
+-- shifted date.
+-- Your query here:
+
+
+-- Challenge 3: Using Person.Person, produce a padded display name exactly
+-- 40 chars wide: "LastName, FirstName" left-aligned, padded with dots. Show
+-- LEN vs DATALENGTH for 5 rows and explain the factor of 2 in a comment.
+-- Expected columns: DisplayName, LenChars, DataLengthBytes
+-- Hint: NVARCHAR: DATALENGTH = 2× LEN.
+-- Your query here:
+
+
+-- Challenge 4: lesson03.MixedDates (seeded in setup.sql) holds date strings
+-- in mixed formats ('2014-03-01', '03/15/2014', '20140401', 'not a date').
+-- Produce a clean report: original string, parsed DATE where possible
+-- (trying styles 120, 101, 112 in that order), and a flag for unparseable
+-- rows.
+-- Expected columns: RawValue, ParsedDate, IsValid
+-- Hint: COALESCE over TRY_CONVERT calls with explicit styles.
+-- Your query here:
