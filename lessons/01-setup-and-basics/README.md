@@ -129,8 +129,8 @@ like" or "which tables have column X" before writing real queries.
 ## Pitfalls
 
 - **`TOP` without `ORDER BY` isn't guaranteed to return the same rows twice.** Run it
-  twice — here it came back identical, because the optimizer reused the same plan
-  against unchanged data:
+  twice — here it happened to come back identical, but that's luck, not a contract:
+  without `ORDER BY` there is simply no guaranteed order.
   ```sql
   SELECT TOP (5) BusinessEntityID, FirstName, LastName FROM Person.Person;
   ```
@@ -142,8 +142,15 @@ like" or "which tables have column X" before writing real queries.
                  293   Catherine   Abel
                  295   Kim         Abercrombie
   ```
-  Nothing *promises* that order — a new index or plan can change it with no warning.
-  If order matters, add `ORDER BY`; there's no other safe way to pin it down.
+  Nothing *promises* that order — a new index, more data, or a different plan can
+  change it with no error and no warning. If order matters, add `ORDER BY`; there's
+  no other safe way to pin it down.
+
+- **A result set without an explicit outer `ORDER BY` has no defined order.** Results
+  may *appear* ordered in practice (clustered-index order, insertion order) but that
+  is never guaranteed — and an `ORDER BY` inside a view, derived table, or subquery
+  without `TOP`/`OFFSET` does not carry through to the outer result either. Only an
+  `ORDER BY` on the outermost query guarantees the order rows come back in.
 
 - **The default collation is case-insensitive.** AdventureWorks2022 uses
   `SQL_Latin1_General_CP1_CI_AS` (`CI` = case-insensitive):
@@ -158,6 +165,11 @@ like" or "which tables have column X" before writing real queries.
   ```
   Lowercase matched `Road-150 Red, 62` silently — no error, no zero rows. Don't assume
   `=` on strings is case-sensitive without checking the column's collation.
+
+- **`SELECT *` is fine for exploration; avoid it in production queries.** A schema
+  change (added, dropped, or reordered column) silently changes what callers receive
+  and breaks anything that depends on column position or count. Name the columns you
+  need.
 
 - `COUNT(col)` skips `NULL`s; `COUNT(*)` counts every row regardless. Without `WHERE`,
   `UPDATE`/`DELETE` affect every row — confirm the predicate first with a matching `SELECT`.

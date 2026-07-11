@@ -41,10 +41,9 @@ ORDER BY Color;
 -- Reasoning: Decompose into "which tables have this column" and "how many columns does
 --   each have" — two different grains of the same INFORMATION_SCHEMA.COLUMNS rowset.
 --   An EXISTS correlated subquery marks the qualifying (schema, table) pairs without
---   collapsing them, so the outer GROUP BY can still count every column on the table,
---   not just the matching one. Tempting-but-wrong: WHERE COLUMN_NAME = 'ModifiedDate'
---   directly in the outer query — that filters rows before the GROUP BY ever sees the
---   table's other columns, so COUNT(*) would return 1 for every table, always.
+--   collapsing them, so the outer GROUP BY can still count every column on the table.
+--   Tempting-but-wrong: WHERE COLUMN_NAME = 'ModifiedDate' in the outer query — that
+--   filters before GROUP BY, so COUNT(*) would return 1 for every table, always.
 SELECT
     c.TABLE_SCHEMA AS TableSchema,
     c.TABLE_NAME   AS TableName,
