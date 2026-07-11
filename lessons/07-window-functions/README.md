@@ -20,9 +20,8 @@ throwing away the rows" question — running totals, rankings, period comparison
 
 A window function keeps every input row and **annotates** it with a value computed from a
 *window* of related rows. Where `GROUP BY` collapses each group to one row (6 orders → 1
-total), a window annotates every row and keeps them all (6 orders → 6 rows + a total
-column). Picture one partition (one customer's orders), sorted, with a frame that slides
-down:
+total), a window annotates all 6 and keeps them. Picture one partition (one customer's
+orders), sorted, with a frame that slides down:
 
 ```
  ── one partition: CustomerID = 11091, ORDER BY OrderDate ──
@@ -64,7 +63,6 @@ SalesOrderID OrderDate               TotalDue    RunningTotal
        51925 2013-07-01 00:00:00.000     15.4479      15.4479
        52420 2013-07-11 00:00:00.000     59.6590      75.1069
        54113 2013-08-09 00:00:00.000     64.6094     139.7163
-       54391 2013-08-14 00:00:00.000     14.2987     154.0150
 ```
 
 `PARTITION BY CustomerID` restarts the total for each customer, `ORDER BY OrderDate` fixes
@@ -123,7 +121,6 @@ SaleMonth   Revenue     PrevMonth   MoMChange
           2    22000.00    20000.00     2000.00
           3    24000.00    22000.00     2000.00
           4    12000.00    24000.00   -12000.00
-          5    23000.00    12000.00    11000.00
 ```
 
 The first row has no predecessor, so `LAG` returns `NULL` (pass a third argument for a
@@ -133,8 +130,7 @@ default, e.g. `LAG(Revenue, 1, 0)`). The month-4 dip pops out as a −12000 chan
 
 ### 4. Aggregate windows + framing — the frame is the only difference
 
-Same `OVER`, same `ORDER BY` — only the frame clause differs, and a running total becomes
-a moving average. Both in one query so you can compare column by column:
+Same `OVER`, same `ORDER BY` — only the frame differs. Both in one query to compare:
 
 ```sql
 SELECT SaleMonth, Revenue,
@@ -209,14 +205,18 @@ every row. Leave the frame off `LAST_VALUE` and it breaks — see Pitfalls.
           1    20000.00    20000.00    20000.00
           2    22000.00    20000.00    22000.00
           3    24000.00    20000.00    24000.00
-          4    12000.00    20000.00    12000.00
   ```
   Fix: add `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING` (concept 5 above).
 
 - **`RANGE` vs `ROWS` with duplicate `ORDER BY` values.** `RANGE` (the default when you
-  write `ORDER BY` without a frame) treats all peer rows — rows with the same `ORDER BY`
-  value — as one, inflating a running total; `ROWS` counts physical rows. Two rows share
-  the date `2023-01-01` here:
+  write `ORDER BY` without a frame) treats peer rows — same `ORDER BY` value — as one:
+
+  ```sql
+  SELECT d, amt, SUM(amt) OVER (ORDER BY d) AS Range_Total,
+         SUM(amt) OVER (ORDER BY d ROWS UNBOUNDED PRECEDING) AS Rows_Total
+  FROM (VALUES ('2023-01-01',100),('2023-01-01',100),('2023-01-02',50)) AS t(d,amt)
+  ORDER BY d, Rows_Total;
+  ```
 
   ```
   d          amt   Range_Total   Rows_Total
@@ -227,7 +227,7 @@ every row. Leave the frame off `LAST_VALUE` and it breaks — see Pitfalls.
   ```
   Both tied rows get `Range_Total = 200` — `RANGE` hands every peer the group's full
   cumulative total (double-counting within the tie), while `Rows_Total` climbs one row at
-  a time (100 then 200). Use `ROWS` for true running totals unless you want peers grouped.
+  a time. Use `ROWS` for true running totals unless you want peers grouped.
 
 - **Window functions can't go in `WHERE`.** They're computed after `WHERE`/`GROUP BY`, so
   `WHERE ROW_NUMBER() OVER (...) = 1` errors:

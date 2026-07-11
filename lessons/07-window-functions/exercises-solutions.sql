@@ -82,14 +82,12 @@ ORDER BY Region, SaleYear, SaleMonth;
 ------------------------------------------------------------
 
 -- Challenge 1: Longest streak of consecutive rising months per salesperson.
--- Reasoning: Decompose into (a) collapse orders to salesperson-month totals,
---   (b) mark where a rising run STARTS, (c) group each run, (d) pick the longest.
---   A month continues a streak only if the previous row is the immediately prior
---   calendar month AND its total was lower — so LAG must check BOTH the month gap
---   and the value. The tempting-but-wrong approach is to LAG only on value: that
---   silently treats a gap month (no orders) as "consecutive" and over-counts. The
---   running SUM of the streak-start flag is a group id (the gaps-and-islands trick);
---   COUNT per group is the streak length, and MIN/MAX give the span.
+-- Reasoning: Decompose: (a) collapse orders to salesperson-month totals, (b) flag
+--   where a rising run starts, (c) group each run, (d) keep the longest. A month
+--   continues a streak only if LAG shows the immediately prior calendar month AND a
+--   lower total — the tempting-but-wrong approach LAGs on value alone, silently
+--   treating gap months as consecutive and over-counting. A running SUM of the start
+--   flag is a group id (gaps-and-islands); COUNT is the length, MIN/MAX the span.
 WITH Monthly AS (
     SELECT SalesPersonID,
            DATEFROMPARTS(YEAR(OrderDate), MONTH(OrderDate), 1) AS MonthStart,
@@ -132,12 +130,11 @@ ORDER BY StreakLengthMonths DESC, SalesPersonID;
 
 -- Challenge 2: Top-3 orders per customer (5+ orders) with % of lifetime spend.
 -- Reasoning: One pass computes three windows over the same PARTITION BY CustomerID:
---   COUNT(*) for the 5+ gate, SUM(TotalDue) for the lifetime denominator, and
---   ROW_NUMBER ordered by TotalDue DESC for the top-3. All three are windows so no
---   GROUP BY is needed and detail rows survive. Filtering happens in the outer query
---   because window functions are illegal in WHERE. The tempting-but-wrong approach is
---   a GROUP BY to get the count/sum, then a self-join back for the top 3 — more work
---   and it collapses the rows you still need.
+--   COUNT(*) for the 5+ gate, SUM(TotalDue) for the lifetime denominator, ROW_NUMBER
+--   (TotalDue DESC) for the top-3. All three are windows, so detail rows survive with
+--   no GROUP BY; filtering happens in the outer query because window functions are
+--   illegal in WHERE. Tempting-but-wrong: GROUP BY for the count/sum plus a self-join
+--   back for the top 3 — more work, and it collapses the rows you still need.
 WITH Ranked AS (
     SELECT CustomerID, SalesOrderID, TotalDue,
         COUNT(*)      OVER (PARTITION BY CustomerID) AS OrderCount,
@@ -154,11 +151,11 @@ ORDER BY CustomerID, OrderRank;
 
 -- Challenge 3: 3-month moving average per region + a >20%-below-average slump flag.
 -- Reasoning: Compute the moving average in a CTE (frame ROWS BETWEEN 2 PRECEDING AND
---   CURRENT ROW, per region), then compare Revenue against it in the outer query. The
---   flag can't live in the same SELECT as the window it depends on — a window function
---   can't be referenced by another expression in its own SELECT — so the CTE layer is
---   what makes the comparison legal. "20% below" means Revenue < 0.8 * MovAvg3. West's
---   month-4 dip (12000 vs a ~19333 average) is the row that trips the flag.
+--   CURRENT ROW, per region), then compare Revenue to it in the outer query — a SELECT
+--   column alias can't be referenced by another expression in the same SELECT, so the
+--   flag needs the CTE layer. Tempting-but-wrong: repeating the whole AVG() OVER inside
+--   the CASE — legal, but duplicated logic that drifts on edit. "20% below" = Revenue
+--   < 0.8 * MovAvg3; West's month-4 dip (12000 vs ~19333) is the row that trips it.
 WITH M AS (
     SELECT Region, SaleYear, SaleMonth, Revenue,
         AVG(Revenue) OVER (PARTITION BY Region ORDER BY SaleYear, SaleMonth
