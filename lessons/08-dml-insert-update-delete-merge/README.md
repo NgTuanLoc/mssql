@@ -1,7 +1,8 @@
 # Lesson 08 — DML: INSERT / UPDATE / DELETE / MERGE
 
-**Prerequisites:** Lessons 01–05 (SELECT, joins, filtering) and lesson 06 (CTEs — you'll
-use one for a windowed `DELETE` in the challenges).
+**Prerequisites:** Lessons 01–05 (SELECT, joins, filtering), lesson 06 (CTEs — you'll use
+one for a windowed `DELETE` in the challenges), and lesson 07 (`ROW_NUMBER()`, which the
+windowed `DELETE` ranks with).
 
 A junior engineer runs `UPDATE Orders SET Status = 'Shipped' FROM Orders o JOIN Shipments
 s ON s.OrderID = o.OrderID`, expecting one row updated per order. A buggy carrier feed had
@@ -136,8 +137,8 @@ The `LEFT JOIN ... WHERE t.ProductID IS NULL` pattern finds "orphan" feed rows �
 rows with no matching target yet — and removes just those two. `DELETE` supports the same
 `FROM`/join machinery as `UPDATE`; the alias before `FROM` (`s`) tells SQL Server which
 side of the join to actually delete from. Note this only works because `InventorySource`
-has no foreign-key children — deleting from a table with FK-referencing child rows still
-in place fails with a constraint violation regardless of how you filtered it.
+has no foreign-key children — deleting a row that still has FK-referencing child rows fails
+with a constraint violation no matter how you selected it for deletion.
 
 **Reach for this when** the rows to remove are defined by their relationship to another
 table, not by a simple column filter.

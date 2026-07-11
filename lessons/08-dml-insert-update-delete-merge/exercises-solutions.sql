@@ -87,12 +87,13 @@ SELECT COUNT(*) AS SecondRunInsertCount FROM @Inserted2; -- must be 0
 -- Challenge 2: Full sync with audit
 -- Reasoning: MERGE is the right tool since it needs update+insert+delete in one atomic
 -- statement sharing a single OUTPUT stream; three separate statements can't do that.
--- Challenge 1 already backfilled any staging keys missing from the target, so an extra
--- staging row (ProductID 7) is added first to guarantee a genuine INSERT case here
--- regardless of run order. $action plus COALESCE(inserted.*, deleted.*) — only one side
--- is populated per action — go straight into the audit table via OUTPUT INTO.
+-- An extra staging row (ProductID 7) guarantees a genuine INSERT case; it's guarded by
+-- NOT EXISTS so re-running the whole file doesn't hit a PK violation (same idempotent
+-- habit Challenge 1 teaches). $action plus COALESCE(inserted.*, deleted.*) — only one
+-- side is populated per action — go straight into the audit table via OUTPUT INTO.
 INSERT lesson08.ProductPriceStage (ProductID, ListPrice, ModifiedDate)
-VALUES (7, 70.00, SYSDATETIME());
+SELECT 7, 70.00, SYSDATETIME()
+WHERE NOT EXISTS (SELECT 1 FROM lesson08.ProductPriceStage WHERE ProductID = 7);
 
 MERGE lesson08.ProductPrice AS t
 USING lesson08.ProductPriceStage AS s
