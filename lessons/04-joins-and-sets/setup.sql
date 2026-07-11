@@ -14,10 +14,13 @@ CREATE SCHEMA lesson04;
 GO
 
 -- Small tables to demo join types clearly without AdventureWorks noise
-CREATE TABLE lesson04.Left  (ID INT, Value NVARCHAR(20));
-CREATE TABLE lesson04.Right (ID INT, Value NVARCHAR(20));
+-- NOTE: Left/Right are reserved T-SQL keywords (LEFT JOIN, RIGHT JOIN) and
+-- must be bracket-quoted whenever used as identifiers, in this file and anywhere
+-- else that references these two tables.
+CREATE TABLE lesson04.[Left]  (ID INT, Value NVARCHAR(20));
+CREATE TABLE lesson04.[Right] (ID INT, Value NVARCHAR(20));
 
-INSERT lesson04.Left  VALUES (1,'L-only'), (2,'Both-A'), (3,'Both-B');
-INSERT lesson04.Right VALUES (2,'Both-A'), (3,'Both-B'), (4,'R-only');
+INSERT lesson04.[Left]  VALUES (1,'L-only'), (2,'Both-A'), (3,'Both-B');
+INSERT lesson04.[Right] VALUES (2,'Both-A'), (3,'Both-B'), (4,'R-only');
 
 PRINT 'Lesson 04 setup complete.';
