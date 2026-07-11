@@ -32,10 +32,10 @@ flowchart TB
     C -- no --> D["Stop: all anchor + recursive rows"]
 ```
 
-Non-recursive CTEs don't loop — they're just a `SELECT` given a name so a later part of the
-query (or another CTE) can `FROM`/`JOIN` it instead of repeating the subquery text. Think of
-every CTE as a **named building block**: lesson 18's whole approach to complex queries is
-chaining several of these blocks together, one grain-change per step.
+Non-recursive CTEs don't loop — a CTE is just a `SELECT` given a name so a later part of the
+query (or another CTE) can `FROM`/`JOIN` it. Think of each as a **named building block**:
+lesson 18's whole approach to complex queries is chaining these blocks, one grain-change per
+step.
 
 ## Setup
 
@@ -150,9 +150,8 @@ SalesOrderID CustomerID  TotalDue              CustomerAvg
  from all of that customer's own orders on every row)
 ```
 
-`WHERE soh2.CustomerID = soh.CustomerID` is the correlation — `soh` is the current outer row,
-fixed while the inner query runs. Every one of this customer's 28 orders re-triggers the same
-inner `AVG`, correct here but exactly the per-row cost called out in Pitfalls below.
+`WHERE soh2.CustomerID = soh.CustomerID` is the correlation. Each of this customer's 28 orders
+re-triggers the same inner `AVG` — correct here, but exactly the per-row cost in Pitfalls below.
 
 **Reach for this when** each outer row needs its own independently-scoped calculation.
 
@@ -295,8 +294,17 @@ data-driven, not a fixed number of joins.
 
 - **A scalar subquery in `SELECT` runs once per outer row — a hidden N+1.** It doesn't
   always look expensive (the optimizer can flatten a simple correlated `MAX`/`COUNT` into a
-  join), but a `TOP (1) ... ORDER BY` subquery usually can't be flattened. With
-  `SET STATISTICS IO ON`, one such subquery over all 19,820 customers shows:
+  join), but a `TOP (1) ... ORDER BY` subquery usually can't be flattened:
+
+  ```sql
+  SET STATISTICS IO ON;
+  SELECT c.CustomerID,
+      (SELECT TOP (1) soh.SalesOrderID
+       FROM Sales.SalesOrderHeader AS soh
+       WHERE soh.CustomerID = c.CustomerID
+       ORDER BY soh.OrderDate DESC) AS LatestOrderID
+  FROM Sales.Customer AS c;   -- 19,820 customers
+  ```
 
   ```
   Table 'Worktable'. Scan count 19820, logical reads 103759, ...
