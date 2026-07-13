@@ -33,4 +33,21 @@ END
 GO
 CREATE SCHEMA lesson10;
 GO
+
+-- Single-table data for the updatable-view challenge (Challenge 4): a
+-- Status column with both Active and Inactive rows so a WITH CHECK OPTION
+-- demo has a genuine violation to catch.
+CREATE TABLE lesson10.Account (
+    AccountID   INT          IDENTITY(1,1) PRIMARY KEY,
+    AccountName NVARCHAR(100) NOT NULL,
+    Status      VARCHAR(10)   NOT NULL DEFAULT 'Active'
+);
+INSERT lesson10.Account (AccountName, Status) VALUES
+    (N'Contoso Retail',         'Active'),
+    (N'Fabrikam Inc',           'Active'),
+    (N'Northwind Traders',      'Inactive'),
+    (N'Adventure Works Cycles', 'Active'),
+    (N'Tailspin Toys',          'Inactive'),
+    (N'Wingtip Corp',           'Active');
+GO
 PRINT 'Lesson 10 setup complete.';

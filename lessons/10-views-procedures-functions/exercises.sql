@@ -32,3 +32,41 @@ GO
 --             of the 5 largest orders in Sales.SalesOrderHeader.
 -- Expected columns: SalesOrderID, TotalDue, FormattedTotal
 -- Your query here:
+
+
+------------------------------------------------------------
+-- CHALLENGES
+-- Harder problems. They may combine this lesson's topic with
+-- earlier lessons, and usually need 2+ concepts in one query.
+------------------------------------------------------------
+
+-- Challenge 1: Write lesson10.ufn_TopOrdersForCustomer(@CustomerID, @N) as an iTVF
+--              returning the customer's top-N orders by TotalDue; use CROSS APPLY to
+--              run it over all customers in territory 1 with @N = 3.
+-- Expected columns: CustomerID, SalesOrderID, TotalDue, OrderRank
+-- Your query here:
+
+
+-- Challenge 2: Proc lesson10.usp_TerritoryRevenue (@TerritoryID, @Year, @Revenue OUTPUT,
+--              returns 0 ok / 1 not found): TRY/CATCH, SET NOCOUNT ON, validated params
+--              (THROW 50001 on NULL inputs). Demo the success call, the not-found return
+--              code, and the thrown validation error.
+-- Expected columns: (three demo calls)
+-- Your query here:
+
+
+-- Challenge 3: Rewrite a scalar UDF as inline logic: create ufn_CustomerLifetimeSpend
+--              (@CustomerID) scalar UDF, use it in a query over all customers with
+--              STATISTICS TIME on; then produce the same result via one windowed/grouped
+--              query. Record both CPU times in the solution comment.
+-- Expected columns: CustomerID, LifetimeSpend
+-- Your query here:
+
+
+-- Challenge 4: Updatable-view boundary: create a single-table view over lesson10 data
+--              WITH CHECK OPTION filtering Status = 'Active'; show an UPDATE through the
+--              view that succeeds, one that violates the filter (error 550), and explain
+--              in a comment what would make the view non-updatable (joins, aggregates,
+--              DISTINCT).
+-- Expected columns: (demo sequence)
+-- Your query here:
