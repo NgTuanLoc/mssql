@@ -4,13 +4,12 @@
 functions — `ROW_NUMBER` powers the top-N pattern below), and lesson 08 (INSERT/UPDATE,
 which the view demos read and write).
 
-A nightly report calls a scalar function once per row to price out order lines. It works
-fine in dev on a few hundred rows. In production, against the full order-detail table, the
-same report gets dramatically slower — not because the math changed, but because a scalar
-UDF forces SQL Server onto a single thread no matter how many cores sit idle. This lesson
-is about picking the right kind of reusable object *before* that call comes in: a view, an
-inline table-valued function (iTVF), a scalar UDF, or a stored procedure each behave
-completely differently once real data volume shows up.
+A nightly report calls a scalar function once per row to price out order lines — fine in
+dev on a few hundred rows, dramatically slower in production, because a scalar UDF forces
+SQL Server onto a single thread no matter how many cores sit idle. This lesson is about
+picking the right reusable object *before* that call comes in: views, inline table-valued
+functions (iTVFs), scalar UDFs, and stored procedures behave completely differently once
+real data volume shows up.
 
 ## What you'll learn
 
@@ -36,7 +35,9 @@ STORED PROC   no — EXEC only, never      n/a — own plan       yes: DML, TRY/
               inside a query                                  transactions, RETURN
 ---------------------------------------------------------------------------
 * SQL 2019+ auto-inlines a simple scalar UDF; a second RETURN, a loop, or
-  TRY/CATCH disqualifies it — see Concept 3.
+  TRY/CATCH disqualifies it — see Concept 3. A fifth kind, the multi-statement
+  TVF (RETURNS @t TABLE + BEGIN/END), is never inlined — usually avoid it;
+  prefer an iTVF or a proc.
 ```
 
 Views and iTVFs are just named, parameterised `SELECT`s — the optimizer folds their text
@@ -55,8 +56,10 @@ Run `setup.sql` once. It creates the `lesson10` schema plus one seed table —
 
 ### 1. `CREATE OR ALTER VIEW` + `WITH CHECK OPTION`
 
-A view over a single table is updatable by default; `WITH CHECK OPTION` additionally
-rejects any `INSERT`/`UPDATE` through the view that the view's own `WHERE` would filter out:
+The classic view use-cases: simplify complex joins for callers, restrict column access
+(security), and give callers a stable interface while the underlying tables change. A view
+over a single table is also updatable by default; `WITH CHECK OPTION` additionally rejects
+any `INSERT`/`UPDATE` through the view that the view's own `WHERE` would filter out:
 
 ```sql
 CREATE OR ALTER VIEW lesson10.vw_AccountsC AS
@@ -78,9 +81,8 @@ AccountID   AccountName          Status
 ```
 
 Without `WITH CHECK OPTION`, that same `INSERT` would succeed and then vanish from the view
-on the very next `SELECT` (it no longer matches `AccountName LIKE N'C%'`) — a silent,
-confusing write. With `WITH CHECK OPTION` in place, inserting a row the filter would reject
-fails outright instead:
+on the very next `SELECT` (no longer matching `LIKE N'C%'`) — a silent, confusing write.
+With it in place, inserting a row the filter would reject fails outright instead:
 
 ```sql
 INSERT lesson10.vw_AccountsC (AccountName, Status) VALUES (N'Wingtip Europe', 'Active');
@@ -92,9 +94,8 @@ OPTION or spans a view that specifies WITH CHECK OPTION and one or more rows res
 the operation did not qualify under the CHECK OPTION constraint.
 ```
 
-**Reach for this when** a view is meant to be a restricted, writable window onto a table —
-"only active rows," "only this region" — and a write that breaks the restriction should
-fail loudly, not disappear quietly.
+**Reach for this when** a view is a restricted, writable window onto a table — "only
+active rows" — and a write that breaks the restriction should fail loudly, not vanish.
 
 ### 2. Stored procedure conventions
 
@@ -131,13 +132,13 @@ ReturnCode  ProductCount
           0           97
 ```
 
-Call it with a category that has no products (`@CategoryID = 999`) and `@ProductCount`
-comes back `0` with `ReturnCode = 1` — the caller can branch on the return code without
-parsing a result set. `@ProductCount` travels back through `OUTPUT`; the `RETURN` value is a
-status code, not data — never overload it to carry a real number.
+Call it with `@CategoryID = 999` (no products) and `@ProductCount` comes back `0` with
+`ReturnCode = 1` — the caller branches on the return code without parsing a result set.
+The `RETURN` value is a status code, not data — never overload it to carry a real number.
 
 **Reach for this when** a caller needs both a status ("did this work?") and one or two
-scalar values back, without a result set to parse.
+scalar values back, without a result set to parse — and for procs generally: business
+logic spanning multiple statements, DML called by applications, long-running batch work.
 
 ### 3. Scalar UDF cost — the same logic, two ways
 
@@ -175,10 +176,13 @@ SET STATISTICS TIME OFF;
    CPU time = 25 ms,  elapsed time = 26 ms.
 ```
 
-Same result (`109846381.4250` either way, rounding aside), roughly 8x the CPU for the UDF
-version (times vary by run/hardware — see Pitfalls for *why*, with the plan-level proof).
-The two `RETURN` statements above (a routine input guard) are what disqualify this function
-from SQL 2019+ auto-inlining; query `sys.sql_modules.is_inlineable` to check any function.
+Roughly 8x the CPU for the UDF version (times vary by run/hardware — see Pitfalls for the
+plan-level proof of *why*). The totals also differ slightly — `109846381.4250` (UDF) vs
+`109846381.399888` (inline): `RETURNS MONEY` rounds every row to MONEY's 4 decimals
+*before* the `SUM`, while the inline `MONEY × DECIMAL` expression promotes to
+`NUMERIC(38,6)` per row and never loses those extra decimals. The two `RETURN`s above (a
+routine input guard) are what disqualify this function from SQL 2019+ auto-inlining;
+query `sys.sql_modules.is_inlineable` to check any function.
 
 **Reach for this when** you're tempted to wrap row-level math in a scalar UDF "for
 reuse" — for anything beyond a handful of rows, an inline expression or a view is cheaper
@@ -217,7 +221,7 @@ Bike Racks         Hitch Rack - 4-Bike              120.0000         1
 Bike Stands        All-Purpose Bike Stand           159.0000         1
 Bottles and Cages  Mountain Bottle Cage               9.9900         1
 Bottles and Cages  Road Bottle Cage                   8.9900         2
-(rows omitted — 65 rows total across 33 subcategories)
+(rows omitted — 65 rows total across 37 subcategories)
 ```
 
 `CROSS APPLY` invokes the iTVF once per row of `ProductSubcategory`, passing that row's ID
@@ -270,7 +274,8 @@ where the iTVF found nothing).
   the view's column list is cached from creation time. Fix with `EXEC sp_refreshview
   'lesson10.vw_Widget'`, after which `SELECT *` picks up all three columns. This is also why
   a view over a complex join can still be slow: a view is a stored *query*, not stored
-  *data* — every call re-runs the underlying `SELECT`.
+  *data* (unless you create an *indexed* view, which does materialise the result) — every
+  call re-runs the underlying `SELECT`.
 
 - **A scalar UDF forces a serial plan — even on a 32-core box.** Concept 3's ~8x CPU gap
   isn't an accident of hardware; the optimizer states the reason directly. Capturing the
@@ -278,9 +283,8 @@ where the iTVF found nothing).
   ```
   NonParallelPlanReason="TSQLUserDefinedFunctionsNotParallelizable"
   ```
-  The inline-expression version's plan carries no such attribute — nothing structurally
-  stops it from going parallel on larger data. A T-SQL scalar UDF blocks parallelism
-  whenever it isn't auto-inlined, independent of how much CPU is actually free.
+  The inline-expression version's plan carries no such attribute. A T-SQL scalar UDF
+  blocks parallelism whenever it isn't auto-inlined, no matter how much CPU is free.
 
 - **`ORDER BY` inside a view is a compile-time error, not a runtime surprise** — unless
   paired with `TOP`, `OFFSET`, or `FOR XML`:
@@ -296,14 +300,14 @@ where the iTVF found nothing).
   ```
   Add `TOP (100) PERCENT` (or any `TOP`) and it compiles — but a view's output order is
   never guaranteed to callers regardless; `TOP` without `ORDER BY` inside a view is
-  particularly dangerous because it picks an *arbitrary* subset of rows. Always add the
-  `ORDER BY` you actually want in the query that calls the view, not inside it.
+  particularly dangerous because it picks an *arbitrary* subset of rows. If a view must
+  carry `TOP`, pair it with `ORDER BY ... WITH TIES` inside the view so tie rows aren't cut
+  arbitrarily — and still put the `ORDER BY` you actually want in the calling query.
 
 - **Table-typed parameters need a Table-Valued Parameter (TVP), not a plain `TABLE` param.**
-  A proc parameter list can't accept a caller-supplied result set without declaring a
-  user-defined table type first and passing it `READONLY` — out of scope for this lesson,
-  but the reason `EXEC MyProc @Rows = (SELECT ...)` doesn't work the way it looks like it
-  should.
+  A proc can't accept a caller-supplied result set without a user-defined table type
+  declared first and passed `READONLY` — out of scope for this lesson, but the reason
+  `EXEC MyProc @Rows = (SELECT ...)` doesn't work the way it looks like it should.
 
 ## Exercises
 
