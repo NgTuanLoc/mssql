@@ -163,10 +163,12 @@ SELECT SalesOrderID, OrderDate, TotalDue FROM lesson12.SalesOrderNC WHERE Online
 Table 'SalesOrderNC'. Scan count 1, logical reads 15, ...   -- Index Scan of the filtered index
 ```
 
-802 → 15. `QUOTED_IDENTIFIER` must be `ON` for both the `CREATE INDEX` and every session
-that later queries it — with it `OFF` (sqlcmd's default), creation fails outright, and
-if any filtered index already exists on the table, plain `CREATE INDEX`/`INSERT`/`ALTER
-INDEX` statements against that same table start failing with `Msg 1934` too.
+802 → 15. `QUOTED_IDENTIFIER` matters twice, in different ways. With it `OFF` (sqlcmd's
+default), the `CREATE INDEX` fails outright — and once any filtered index exists on the
+table, plain `CREATE INDEX`/`INSERT`/`ALTER INDEX` against that same table fail with
+`Msg 1934` too. A `SELECT` under `OFF` does **not** error: it silently stops using the
+filtered index and falls back to the 802-read clustered scan — a quiet performance loss,
+not a message you'll see.
 
 **Reach for this when** a query always filters to a genuinely small, well-known subset
 (soft-deletes, one status, one flag value) — not when the subset is most of the table
