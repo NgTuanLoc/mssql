@@ -43,6 +43,7 @@ FROM lesson13.SalesOrderHeader AS soh
 JOIN Sales.SalesOrderDetail    AS sod ON sod.SalesOrderID = soh.SalesOrderID
 WHERE soh.TerritoryID = 1;
 -- Likely: Hash Match or Merge Join for the large row set
+GO
 
 -- Example 6: Parameter sniffing demo — see README for two-step walkthrough
 -- Step 1: prime the plan with a common, selective value
@@ -62,6 +63,7 @@ EXEC lesson13.usp_OrdersByTerritory @TerritoryID = 1;   -- large territory (reus
 -- EXEC lesson13.usp_OrdersByTerritory @TerritoryID = 1;   -- now gets its own plan
 
 -- Example 7: OPTIMIZE FOR UNKNOWN — break sniffing without RECOMPILE
+GO
 CREATE OR ALTER PROCEDURE lesson13.usp_OrdersByTerritory_Fixed @TerritoryID INT
 AS
     SELECT SalesOrderID, OrderDate, TotalDue

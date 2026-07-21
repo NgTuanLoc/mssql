@@ -15,6 +15,7 @@ GROUP BY soh.SalesOrderID;
 -- Expected: fewer logical reads and an Index Seek instead of a Scan on SalesOrderHeader.
 
 -- Exercise 2: Add index to eliminate key lookup for TerritoryID + SalesPersonID + SubTotal.
+DROP INDEX IF EXISTS IX_lesson13_SOH_TerritoryID_Inc ON lesson13.SalesOrderHeader;  -- re-run guard
 CREATE INDEX IX_lesson13_SOH_TerritoryID_Inc
     ON lesson13.SalesOrderHeader (TerritoryID)
     INCLUDE (SalesPersonID, SubTotal);
@@ -33,6 +34,7 @@ SELECT SalesOrderID, TotalDue FROM lesson13.SalesOrderHeader WHERE Status = 5;
 SELECT SalesOrderID, TotalDue FROM lesson13.SalesOrderHeader WHERE Status = 1;
 
 -- Exercise 4: Revenue by territory procedure with OPTIMIZE FOR UNKNOWN.
+GO
 CREATE OR ALTER PROCEDURE lesson13.usp_RevenueByTerritory
     @TerritoryID INT
 AS
