@@ -26,11 +26,14 @@ The `-No` flag (disable encryption negotiation) is required with the container's
 
 The .bak is downloaded separately — see `data/adventureworks/README.md`. `reset-db.sh` / `reset-db.ps1` drops and re-restores AdventureWorks, wiping all `lessonNN` schemas.
 
+Notebook lessons (`.ipynb`) are run in Azure Data Studio: open the notebook, attach the SQL kernel to the saved `localhost` connection for the `mssql-learn` container, and run cells top to bottom. To verify a notebook's SQL non-interactively, extract its code-cell sources joined with `GO` and pipe them through the same `sqlcmd` invocation shown above.
+
 ## Lesson conventions
 
 These are firm conventions from the design spec (`docs/superpowers/specs/2026-05-29-mssql-learning-design.md`); follow them when adding or editing lessons.
 
-- Every lesson directory `lessons/NN-topic/` contains exactly five files: `README.md` (concepts + walkthrough), `setup.sql`, `examples.sql`, `exercises.sql`, `exercises-solutions.sql`.
+- Lessons are migrating to a notebook format (design spec: `docs/superpowers/specs/2026-07-21-notebook-lesson-format-design.md`). A **converted** lesson directory contains exactly four files: `setup.sql`, `lesson.ipynb` (concepts + runnable examples, merged), `exercises.ipynb` (prompts only), `exercises-solutions.ipynb` (same prompts + worked solutions). An **unconverted** lesson still has the old five files: `README.md`, `setup.sql`, `examples.sql`, `exercises.sql`, `exercises-solutions.sql`. Converted so far: lesson 13.
+- Notebooks target Azure Data Studio's native SQL kernel (`kernelspec` name `SQL`). First code cell is `USE AdventureWorks2022;`. Commit notebooks with all cell outputs cleared. Never embed connection details or credentials in a notebook.
 - **Each lesson owns a dedicated schema named `lessonNN`** (e.g. `lesson17`) inside AdventureWorks2022. `setup.sql` must be **idempotent**: drop all tables in the schema, drop the schema, recreate everything. Lessons needing nothing beyond AdventureWorks still ship a minimal `setup.sql` creating the empty schema.
 - Lessons must be runnable end-to-end without the learner designing or seeding their own data — AdventureWorks plus `setup.sql` provides everything.
 - `exercises-solutions.sql` has one solution per exercise with a 1–2 line comment explaining the approach, not just the answer.
