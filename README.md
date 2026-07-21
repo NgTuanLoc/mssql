@@ -50,7 +50,9 @@ Connect in SSMS / Azure Data Studio: `localhost,1433` · Login: `sa` · Password
 | 4 — Performance | 12–13 | Indexes, Execution Plans & Query Tuning |
 | Capstone | 18 | Complex Queries (CTE pipelines, APPLY, patterns) |
 
-Each lesson directory contains `README.md` (concepts + examples), `setup.sql` (run once), `exercises.sql`, and `exercises-solutions.sql`.
+Most lesson directories contain `README.md` (concepts + examples), `setup.sql` (run once), `exercises.sql`, and `exercises-solutions.sql`. Lessons converted to the notebook format (so far: lesson 13) instead contain `setup.sql` plus three notebooks — `lesson.ipynb` (concepts + runnable examples), `exercises.ipynb`, and `exercises-solutions.ipynb`.
+
+To run a notebook lesson, open the `.ipynb` in Azure Data Studio and attach the SQL kernel to your `localhost,1433` connection — cells run against the container with results inline. Switch to SSMS where a step calls for its graphical plan viewer.
 
 ## Helper Scripts
 
