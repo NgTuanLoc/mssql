@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A self-paced MSSQL 2022 / T-SQL learning curriculum. There is no application code, build, or test suite — the repo is lesson content (Markdown + SQL) plus a Docker setup for the database the lessons run against. Design specs and per-tier implementation plans live in `docs/superpowers/`.
+A self-paced MSSQL 2022 / T-SQL learning curriculum. There is no application code, build, or test suite — the repo is lesson content (Jupyter notebooks + SQL) plus a Docker setup for the database the lessons run against. Design specs and per-tier implementation plans live in `docs/superpowers/`.
 
 ## Running SQL
 
@@ -32,11 +32,11 @@ Notebook lessons (`.ipynb`) are run in Azure Data Studio: open the notebook, att
 
 These are firm conventions from the design spec (`docs/superpowers/specs/2026-05-29-mssql-learning-design.md`); follow them when adding or editing lessons.
 
-- Lessons are migrating to a notebook format (design spec: `docs/superpowers/specs/2026-07-21-notebook-lesson-format-design.md`). A **converted** lesson directory contains exactly four files: `setup.sql`, `lesson.ipynb` (concepts + runnable examples, merged), `exercises.ipynb` (prompts only), `exercises-solutions.ipynb` (same prompts + worked solutions). An **unconverted** lesson still has the old five files: `README.md`, `setup.sql`, `examples.sql`, `exercises.sql`, `exercises-solutions.sql`. Converted so far: lesson 13.
+- Lessons use the notebook format (design spec: `docs/superpowers/specs/2026-07-21-notebook-lesson-format-design.md`; all lessons 01–18 are converted). A lesson directory contains exactly four files: `setup.sql`, `lesson.ipynb` (concepts + runnable examples, merged), `exercises.ipynb` (prompts only), `exercises-solutions.ipynb` (same prompts + worked solutions). The normative rules governing a conversion — file mapping, verbatim transfer, batching, `-- [manual]` cells, and the verification harness — live in `docs/superpowers/plans/2026-07-21-notebook-rollout-recipe.md`.
 - Notebooks target Azure Data Studio's native SQL kernel (`kernelspec` name `SQL`). First code cell is `USE AdventureWorks2022;`. Commit notebooks with all cell outputs cleared. Never embed connection details or credentials in a notebook. SSMS remains the tool for graphical-plan-viewer-dependent steps; notebooks call this out inline where needed.
 - **Each lesson owns a dedicated schema named `lessonNN`** (e.g. `lesson17`) inside AdventureWorks2022. `setup.sql` must be **idempotent**: drop all tables in the schema, drop the schema, recreate everything. Lessons needing nothing beyond AdventureWorks still ship a minimal `setup.sql` creating the empty schema.
 - Lessons must be runnable end-to-end without the learner designing or seeding their own data — AdventureWorks plus `setup.sql` provides everything.
-- `exercises-solutions.sql` has one solution per exercise with a 1–2 line comment explaining the approach, not just the answer.
+- `exercises-solutions.ipynb` has one solution per exercise, each followed by a short `**Why:**` markdown note explaining the approach, not just the answer.
 - Curriculum tiers: 01–04 foundations, 05–08 working with data, 09–11 programming, 12–13 performance, 14–17 internals (storage, optimizer, memory/log, locking/waits), 18 capstone (complex queries). The internals tier has its own design spec (`docs/superpowers/specs/2026-05-30-mssql-internals-tier5-design.md`); the capstone's is `docs/superpowers/specs/2026-06-11-complex-queries-lesson-design.md`.
 - `cheatsheets/` are standalone reference docs, independent of lesson order.
 

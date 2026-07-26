@@ -1,6 +1,6 @@
 # MSSQL Self-Study
 
-A self-paced T-SQL curriculum using MSSQL 2022 Developer edition in Docker and the AdventureWorks sample database. Covers T-SQL fundamentals through execution plan reading and query tuning (~13 lessons, ~30–50 hours).
+A self-paced T-SQL curriculum using MSSQL 2022 Developer edition in Docker and the AdventureWorks sample database. Covers T-SQL fundamentals through query tuning and engine internals, ending in a complex-query capstone (18 lessons, ~30–50 hours).
 
 ## Prerequisites
 
@@ -48,9 +48,10 @@ Connect in SSMS / Azure Data Studio: `localhost,1433` · Login: `sa` · Password
 | 2 — Working with Data | 05–08 | Aggregations, Subqueries/CTEs, Window Functions, DML |
 | 3 — Programming MSSQL | 09–11 | DDL/Constraints, Views/Procs/Functions, Transactions/Concurrency |
 | 4 — Performance | 12–13 | Indexes, Execution Plans & Query Tuning |
+| 5 — Internals | 14–17 | Storage, Query Lifecycle/Optimizer, Memory/Buffer Pool/Log, Locking/Blocking/Waits |
 | Capstone | 18 | Complex Queries (CTE pipelines, APPLY, patterns) |
 
-Most lesson directories contain `README.md` (concepts + examples), `setup.sql` (run once), `exercises.sql`, and `exercises-solutions.sql`. Lessons converted to the notebook format (so far: lesson 13) instead contain `setup.sql` plus three notebooks — `lesson.ipynb` (concepts + runnable examples), `exercises.ipynb`, and `exercises-solutions.ipynb`.
+Each lesson directory contains `setup.sql` (run once) plus three notebooks — `lesson.ipynb` (concepts + runnable examples), `exercises.ipynb` (prompts), and `exercises-solutions.ipynb` (worked solutions).
 
 To run a notebook lesson, open the `.ipynb` in Azure Data Studio and attach the SQL kernel to your `localhost,1433` connection — cells run against the container with results inline. Switch to SSMS where a step calls for its graphical plan viewer.
 

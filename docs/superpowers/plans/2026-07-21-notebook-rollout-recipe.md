@@ -24,14 +24,14 @@ SQL statements and README prose transfer **verbatim** — no rewritten queries, 
 
 - **R3a** File pointers rewritten: references to `README.md`/`examples.sql`/`exercises.sql`/`exercises-solutions.sql` become the corresponding notebook names ("Open `exercises.sql`" → "Open `exercises.ipynb`", etc.).
 - **R3b** Tool guidance adapted, not dropped: where the README recommends SSMS or ADS for something, keep the guidance and add notebook context (pilot pattern: a `**Tooling note:**` in the intro cell saying to run cells in ADS attached to the `mssql-learn` connection, switching to SSMS where its features are needed).
-- **R3c** A README "Worked Examples" list that is purely a table of contents for `examples.sql` is dropped (the examples are now inline).
+- **R3c** A README "Worked Examples" list that is purely a table of contents for `examples.sql` is dropped (the examples are now inline), along with any sentence that only framed that list. Its per-item descriptions may instead be **repurposed** as the one-line intro under each example's `### Example N —` heading (see R4) rather than discarded — the words stay verbatim; only their placement changes. (Established across the rollout: lessons 07–12, 14–16.)
 - **R3d** SQL comments that ARE the explanation may move from code into the adjacent markdown cell (pilot: `-- Exercise N:` prompts became prompt prose; solution rationale comments became `**Why:**` cells). The words stay verbatim; only the container changes. Inline comments on code lines stay in the code.
 
 ## R4 — lesson.ipynb structure
 
 1. Intro markdown cell: README title, "What you'll learn", setup note, tooling note (R3b).
 2. Preamble code cell: `USE AdventureWorks2022;\nGO` plus whatever session settings the lesson's `examples.sql` preamble sets (`SET STATISTICS IO/TIME ON`, etc.).
-3. README concept sections in original order as markdown cells; where a section corresponds to `-- Example N` blocks in `examples.sql`, the example code cells immediately follow it (short new intro line like `### Example N — <title from the source comment>` is permitted). Every README section and every `examples.sql` statement must appear, in order, exactly once.
+3. README concept sections in original order as markdown cells; where a section corresponds to `-- Example N` blocks in `examples.sql`, the example code cells immediately follow it (short new intro line like `### Example N — <title from the source comment>` is permitted, optionally followed by the repurposed README worked-examples description for that example (R3c) and/or a `(Concept N)` back-reference to the concept it demonstrates). Grouping all concept cells first, then a "Worked examples" section, is an acceptable alternative to strict interleaving when the source README is laid out that way. Every README section and every `examples.sql` statement must appear, in order, exactly once.
 4. Closing cells: any `SET ... OFF` teardown as a code cell; then Pitfalls/cheatsheet-link/exercises-pointer markdown (pointers per R3a).
 
 ## R5 — exercises.ipynb structure
