@@ -55,7 +55,7 @@ efcore/
   EfCoreLessons.csproj       the only project; everything below compiles into it
   global.json                pins SDK 10.0.x (this machine's default SDK is an 11 preview)
   xunit.runner.json          disables parallel test execution
-  .config/dotnet-tools.json  pins dotnet-ef 10.0.12 as a local tool
+  dotnet-tools.json          pins dotnet-ef 10.0.12 as a local tool (the .NET 10 SDK's default location)
   Lab/                       shared test harness
   Model/                     scaffolded AdventureWorksContext + entities (generated, committed)
   lessons/
@@ -120,8 +120,10 @@ No solution file: `dotnet test` and IDEs work from the `.csproj`. Each lesson's 
   list keeps any `lessonNN` tables created by the T-SQL track out of the model. Configuration
   stays in the Fluent API (the default), which E10 builds on.
 - The scaffolder skips `HumanResources.Employee.OrganizationNode` (hierarchyid) and
-  `Person.Address.SpatialLocation` (geography) because the HierarchyId and NetTopologySuite
-  plugin packages are not added — no lesson needs them, and E01 explains the skip.
+  `Person.Address.SpatialLocation` (geography), and drops the `Production.Document` and
+  `Production.ProductDocument` tables entirely (their primary key is a hierarchyid), because the
+  HierarchyId and NetTopologySuite plugin packages are not added — no lesson needs them, and E01
+  explains the skip. It does declare every trigger with `HasTrigger` (10 triggers on 8 tables).
 - **`Model/` is never hand-edited.** Shared corrections go in a partial-class file outside
   `Model/` (implementing the scaffolded `OnModelCreatingPartial`). Lesson-specific model
   changes go in a context derived from `AdventureWorksContext` inside the lesson folder; EF
@@ -166,10 +168,13 @@ public class E05Exercises : E05Checks
 
 - xUnit runs the inherited facts once per derived class, so one set of assertions serves
   both the learner's attempts and the solutions — the two can't drift apart.
+- Lessons that need model changes add a sixth file, `E<NN>Context.cs`: a context derived from
+  `AdventureWorksContext` (see Model). Their checks derive from `LabTest<E<NN>Context>`.
 - Each lesson has 5 exercises (`Ex1`–`Ex5`) and 3–4 challenges (`Ch1`–`Ch4`); challenges
   combine concepts and may draw on earlier lessons.
-- An exercise that still throws `NotImplementedException` is reported **skipped** (xUnit v3
-  runtime skip); a wrong answer **fails**; a correct one **passes**.
+- An exercise that still throws `NotImplementedException` is reported **skipped**; a wrong
+  answer **fails**; a correct one **passes**. Checks use an `[Exercise]` attribute (a `[Fact]`
+  whose `SkipExceptions` contains `NotImplementedException`), so no check needs extra code for it.
 
 ### What checks assert
 
@@ -186,11 +191,11 @@ what the exercise teaches.
 
 ## Lab Harness
 
-`LabTest` (a fresh instance per test, as xUnit creates one per test) provides:
+`LabTest<TContext>` (a fresh instance per test, as xUnit creates one per test; `LabTest` is
+`LabTest<AdventureWorksContext>`) provides:
 
-- `Db` — an `AdventureWorksContext` on the test's connection and transaction, rolled back on
-  dispose.
-- `NewContext()` — another `AdventureWorksContext` on the same connection and transaction.
+- `Db` — a `TContext` on the test's connection and transaction, rolled back on dispose.
+- `NewContext()` — another `TContext` on the same connection and transaction.
 - `Sql` — every command run by `Db` and `NewContext()` contexts, captured by a
   `DbCommandInterceptor` and printed to test output. `Sql.AssertRoundTrips(n)` lists the
   captured commands in its failure message.
@@ -252,14 +257,17 @@ and data survival (e.g. rows seeded before a column rename must still be there a
 
 ## Tooling & Versions
 
-- Target `net10.0`. Packages: `Microsoft.EntityFrameworkCore.SqlServer`, `.Design` and
-  `.Proxies` (E05's lazy-loading demo) at **10.0.12**; xUnit v3 with
-  `xunit.runner.visualstudio` and `Microsoft.NET.Test.Sdk` so `dotnet test --filter` uses the
-  VSTest syntax shown below. Test-package versions are fixed in the phase 1 plan.
+- Target `net10.0`. Packages: `Microsoft.EntityFrameworkCore.SqlServer` and `.Design` at
+  **10.0.12** (`.Proxies` 10.0.12 joins in phase 2 for E05's lazy-loading demo); `xunit.v3.mtp-off`
+  4.0.2, `xunit.runner.visualstudio` 4.0.1 and `Microsoft.NET.Test.Sdk` 18.10.1. xUnit v3 4.x
+  defaults to Microsoft.Testing.Platform; the `mtp-off` package keeps `dotnet test` on VSTest so
+  `--filter` uses the syntax shown below.
 - All versions are exact — no floating ranges.
 - `global.json` pins SDK 10.0.x with `rollForward: latestFeature` (never an 11 preview).
-- `.config/dotnet-tools.json` pins `dotnet-ef` 10.0.12; `dotnet tool restore` once. The
-  machine's global `dotnet-ef` 9.0.7 is left alone.
+- `dotnet-tools.json` pins `dotnet-ef` 10.0.12; `dotnet tool restore` once. The machine's
+  global `dotnet-ef` 9.0.7 is left alone.
+- The xUnit analyzer rule xUnit1051 (pass `TestContext.Current.CancellationToken` to every async
+  call) is suppressed: lessons favor readable queries over cancellation plumbing.
 - EF Core 11 (GA November 2026) is out of scope. Upgrading later = bump versions, re-run the
   solutions.
 - `.gitignore` gains `bin/`, `obj/`, `TestResults/`.
@@ -304,18 +312,22 @@ Each phase gets its own implementation plan in `docs/superpowers/plans/`:
 4. **Tier D** — E10–E12, adding `LabDatabase`.
 5. **Capstone** — E13.
 
-## Risks / To Verify in Phase 1
+## Risks
 
-- **Scaffold fidelity:** AdventureWorks triggers (EF's OUTPUT-clause SaveChanges fails on
-  tables with triggers unless `HasTrigger` is configured — check whether the EF 10 scaffolder
-  emits it), computed columns, user-defined data types, the skipped hierarchyid/geography
-  columns.
-- **"Not attempted = skipped":** depends on xUnit v3 runtime skip; confirm with the pinned
-  version.
-- **`Reference` isolation:** reference queries must see the test's transaction without being
-  counted in `Sql`.
+Verified while planning phase 1 (2026-10-10, against the live container):
+
+- **Scaffold fidelity — resolved.** The EF 10 scaffolder emits `HasTrigger` for all 10
+  triggers; the model builds with 0 warnings; the only losses are the hierarchyid/geography
+  columns and the two hierarchyid-keyed tables listed under Model.
+- **"Not attempted = skipped" — resolved.** `FactAttribute.SkipExceptions` (xUnit v3 4.0.2)
+  reports unimplemented exercises as skipped.
+- **`Reference` isolation — resolved.** A second context on the same connection and
+  transaction, without the capture interceptor.
+
+Still open:
+
 - **Run time:** serial execution plus per-test database recreation in Tier D; acceptable for
-  now, revisit if a full run gets slow.
+  now (phase 1's 110 tests run in ~2 s), revisit if a full run gets slow.
 
 ## Out of Scope (Restated)
 
