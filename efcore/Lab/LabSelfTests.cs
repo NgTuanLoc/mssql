@@ -1,5 +1,7 @@
+using EfCoreLessons.Model;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace EfCoreLessons.Lab;
 
@@ -75,6 +77,52 @@ public class LabSelfTests : LabTest
         Assert.Equal(504, await Db.Products.CountAsync()); // SHOWPLAN is off again: queries run normally
     }
 
+    [Fact]
+    public async Task NewContext_adds_interceptors()
+    {
+        var saves = new SaveCounter();
+        var db = NewContext<AdventureWorksContext>(saves);
+
+        var product = await db.Products.SingleAsync(p => p.ProductId == 1);
+        product.Name = "Intercepted";
+        await db.SaveChangesAsync();
+
+        Assert.Equal(1, saves.Count);
+        Sql.AssertRoundTrips(2); // still captured, still on the test transaction
+    }
+
+    [Fact]
+    public async Task A_session_is_independent_and_cannot_block_forever()
+    {
+        await Db.Products.Where(p => p.ProductId == 1).ExecuteUpdateAsync(u => u.SetProperty(p => p.Name, "Locked by the test"));
+        var session = await NewSessionAsync();
+
+        // Its own transaction: it sees the last committed name, not the test's uncommitted one.
+        Assert.Equal("Adjustable Race", await session.Products.Where(p => p.ProductId == 1).Select(p => p.Name).SingleAsync());
+
+        // Writing the row the test has locked waits LockTimeoutMs, then fails with error 1222.
+        var started = DateTime.UtcNow;
+        var failure = await Assert.ThrowsAnyAsync<Exception>(() =>
+            session.Products.Where(p => p.ProductId == 1).ExecuteUpdateAsync(u => u.SetProperty(p => p.Name, "Blocked")));
+        Assert.Equal(1222, Assert.IsType<SqlException>(failure.InnerException ?? failure).Number);
+        Assert.InRange(DateTime.UtcNow - started, TimeSpan.FromMilliseconds(LockTimeoutMs - 500), TimeSpan.FromMilliseconds(LockTimeoutMs * 3));
+        Sql.AssertRoundTrips(1); // the session's commands are not counted
+    }
+
+    [Fact]
+    public async Task Session_writes_are_rolled_back_when_the_test_ends()
+    {
+        var lab = new ScratchLab();
+        await lab.InitializeAsync();
+        await lab.RenameProduct1InASession("Never committed either");
+        await lab.DisposeAsync();
+
+        await using var connection = await LabConnection.OpenAsync(LabConnection.AdventureWorks);
+        await using var command = new SqlCommand("SELECT Name FROM Production.Product WHERE ProductID = 1", connection);
+
+        Assert.Equal("Adjustable Race", await command.ExecuteScalarAsync());
+    }
+
     sealed class ScratchLab : LabTest
     {
         public async Task RenameProduct1(string name)
@@ -82,6 +130,24 @@ public class LabSelfTests : LabTest
             var product = await Db.Products.SingleAsync(p => p.ProductId == 1);
             product.Name = name;
             await Db.SaveChangesAsync();
+        }
+
+        public async Task RenameProduct1InASession(string name)
+        {
+            var session = await NewSessionAsync();
+            await session.Products.Where(p => p.ProductId == 1).ExecuteUpdateAsync(u => u.SetProperty(p => p.Name, name));
+        }
+    }
+
+    sealed class SaveCounter : SaveChangesInterceptor
+    {
+        public int Count { get; private set; }
+
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            Count++;
+            return ValueTask.FromResult(result);
         }
     }
 }
