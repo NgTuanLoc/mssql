@@ -124,6 +124,7 @@ public abstract class E10Checks() : CodeFirstTest("E10")
         var balance = Assert.Single(await Reference.ColumnsAsync("Account"), c => c.Column == "Balance");
         Assert.Equal("decimal", balance.Type);
         Assert.Equal(12, db.Model.FindEntityType(typeof(Account))!.FindProperty(nameof(Account.Balance))!.GetPrecision());
+        Assert.Equal(2, db.Model.FindEntityType(typeof(Account))!.FindProperty(nameof(Account.Balance))!.GetScale());
 
         var account = new Account();
         account.Deposit(100m);

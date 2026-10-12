@@ -68,7 +68,7 @@ Both map a class without its own table into its owner's columns (`ShippingAddres
 | | `OwnsOne` (owned entity type) | `ComplexProperty` (complex type) |
 |---|---|---|
 | Identity | an entity type with a hidden key | none: a value, compared by value |
-| Sharing an instance between owners | not allowed | fine (it's copied) |
+| Sharing one instance between two owners | fails: the instance belongs to one owner, so the save inserts NULLs for the other (`Cannot insert the value NULL into column 'ShippingAddress_Street'`) | works: both rows are saved with the values (copied per owner) |
 | JSON mapping | `.ToJson()` | `.ToJson()` (EF 10) |
 
 Use complex types for values such as an address or money, and owned types when you need entity-like behavior (E11 maps both to JSON).
