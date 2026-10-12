@@ -54,6 +54,17 @@ public class LabSelfTests : LabTest
         Assert.Equal("Adjustable Race", await command.ExecuteScalarAsync());
     }
 
+    [Fact]
+    public async Task Commands_throw_after_the_test_transaction_was_rolled_back_on_the_server()
+    {
+        await Db.Database.ExecuteSqlRawAsync("ROLLBACK");
+
+        // Without the guard this would run in autocommit and could write for real.
+        var failure = await Assert.ThrowsAnyAsync<InvalidOperationException>(() => Db.Products.CountAsync());
+
+        Assert.Contains("transaction", failure.Message);
+    }
+
     sealed class ScratchLab : LabTest
     {
         public async Task RenameProduct1(string name)

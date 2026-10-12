@@ -16,6 +16,8 @@ public abstract class LabTest<TContext> : IAsyncLifetime where TContext : Advent
     // Every command run by Db and by NewContext() contexts.
     protected SqlCapture Sql { get; } = new();
 
+    static readonly TransactionGuard Guard = new();
+
     protected TContext Db { get; private set; } = null!;
 
     // The checks' own reference queries: same transaction, never counted in Sql.
@@ -34,7 +36,8 @@ public abstract class LabTest<TContext> : IAsyncLifetime where TContext : Advent
 
     TContext CreateContext(bool capture)
     {
-        var options = new DbContextOptionsBuilder<AdventureWorksContext>().UseSqlServer(connection!);
+        var options = new DbContextOptionsBuilder<AdventureWorksContext>().UseSqlServer(connection!)
+            .AddInterceptors(Guard);
         if (capture) options.AddInterceptors(Sql);
 
         // Derived lesson contexts expose the same (DbContextOptions<AdventureWorksContext>) constructor.
@@ -46,9 +49,21 @@ public abstract class LabTest<TContext> : IAsyncLifetime where TContext : Advent
 
     public async ValueTask DisposeAsync()
     {
-        foreach (var db in contexts) await db.DisposeAsync();
-        if (transaction != null) await transaction.DisposeAsync(); // never committed: rolls back
-        if (connection != null) await connection.DisposeAsync();
+        try
+        {
+            foreach (var db in contexts) await db.DisposeAsync();
+        }
+        finally
+        {
+            try
+            {
+                if (transaction != null) await transaction.DisposeAsync(); // never committed: rolls back
+            }
+            finally
+            {
+                if (connection != null) await connection.DisposeAsync();
+            }
+        }
         GC.SuppressFinalize(this);
     }
 }
