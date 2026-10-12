@@ -62,6 +62,7 @@ public abstract class E06Checks : LabTest
             OFFSET 0 ROWS FETCH NEXT 75 ROWS ONLY
             """), pages.SelectMany(p => p).ToList());
         Sql.AssertRoundTrips(3);
+        Assert.All(Sql.Commands, sql => Assert.Contains("ORDER BY", sql)); // TOP without ORDER BY has no defined order
         Assert.DoesNotContain("OFFSET", Sql.All);          // no rows skipped and thrown away
         Assert.Contains("[SalesOrderID] > @", Sql.All);    // continue from the last key seen
     }
@@ -126,6 +127,7 @@ public abstract class E06Checks : LabTest
             ORDER BY ListPrice DESC, ProductID
             """), all);
         Sql.AssertRoundTrips(7); // 304 products: six full pages and a short one
+        Assert.All(Sql.Commands, sql => Assert.Contains("ORDER BY", sql)); // TOP without ORDER BY has no defined order
         Assert.DoesNotContain("OFFSET", Sql.All);
     }
 

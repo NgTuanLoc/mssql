@@ -57,7 +57,7 @@ Examples: `Compiled_query_runs_like_any_other`.
 
 ### 3. Keyset paging
 
-`Skip(n).Take(m)` becomes `OFFSET n ROWS FETCH NEXT m ROWS`. The server still reads the first n rows and discards them, so page 750 reads 15,000 rows to return 20, and rows shift between pages when data changes.
+`Skip(n).Take(m)` becomes `OFFSET n ROWS FETCH NEXT m ROWS`. The server still reads the first n rows and discards them, so skipping 15,000 rows still reads them, just to return 20, and rows shift between pages when data changes.
 
 Keyset ("seek") paging remembers the last key returned and asks for the rows after it:
 

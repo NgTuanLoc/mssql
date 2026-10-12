@@ -51,7 +51,8 @@ public abstract class E05Checks : LabTest<E05Context>
 
         Sql.AssertRoundTrips(1);
         Assert.Equal(11091, customer.CustomerId);
-        Assert.True(Db.Entry(customer).Collection(c => c.SalesOrderHeaders).IsLoaded);
+        Assert.True(Db.Entry(customer).Collection(c => c.SalesOrderHeaders).IsLoaded,
+            "The customer's SalesOrderHeaders must be loaded by your query (a filtered Include).");
         Assert.Equal(
             await Reference.Rows<int>($"SELECT SalesOrderID AS Value FROM Sales.SalesOrderHeader WHERE CustomerID = 11091 AND OrderDate >= {since} ORDER BY SalesOrderID"),
             customer.SalesOrderHeaders.Select(h => h.SalesOrderId).Order().ToList());
@@ -107,6 +108,7 @@ public abstract class E05Checks : LabTest<E05Context>
             ORDER BY t.Name
             """), result);
         Assert.Empty(Db.ChangeTracker.Entries()); // counted in SQL, not by loading customers
+        Assert.DoesNotContain("[AccountNumber]", Sql.All); // customers counted in SQL, not loaded
         Sql.AssertRoundTrips(1); // one query for all territories, not one per territory
     }
 
@@ -115,8 +117,8 @@ public abstract class E05Checks : LabTest<E05Context>
     {
         var salesPerson = await Ch1(Db, 277);
 
-        Assert.InRange(Sql.Count, 2, 4);
         Assert.True(Sql.Commands.All(sql => sql.Split("JOIN").Length <= 2), "No single query may join more than one collection to the sales person."); // one collection per query at most
+        Assert.InRange(Sql.Count, 2, 4);
         Assert.True(Db.Entry(salesPerson).Collection(s => s.SalesOrderHeaders).IsLoaded);
         Assert.True(Db.Entry(salesPerson).Collection(s => s.Stores).IsLoaded);
         Assert.True(Db.Entry(salesPerson).Collection(s => s.SalesPersonQuotaHistories).IsLoaded);

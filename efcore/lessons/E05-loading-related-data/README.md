@@ -78,7 +78,7 @@ Example: `Explicit_loading_and_Query`.
 
 ### 5. Projection instead of loading
 
-A `Select` never needs `Include`. Navigations inside the projection become joins and correlated subqueries, only the selected columns are read, and the result is not tracked, so nothing can be lazy-loaded later. For read-only screens and reports, project. Load entity graphs when you are going to change them (Tier C).
+A `Select` never needs `Include`. Navigations inside the projection become joins and correlated subqueries, only the selected columns are read, and a projection of plain values (no entity instances in it) is not tracked, so nothing can be lazy-loaded later. For read-only screens and reports, project. Load entity graphs when you are going to change them (Tier C).
 
 Example: `Projection_needs_no_Include`.
 
