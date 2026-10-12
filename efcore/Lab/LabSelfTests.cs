@@ -54,6 +54,20 @@ public class LabSelfTests : LabTest
         Assert.Equal("Adjustable Race", await command.ExecuteScalarAsync());
     }
 
+    sealed class ScratchLab : LabTest
+    {
+        public async Task RenameProduct1(string name)
+        {
+            var product = await Db.Products.SingleAsync(p => p.ProductId == 1);
+            product.Name = name;
+            await Db.SaveChangesAsync();
+        }
+    }
+}
+
+// LabConnection's password lookup; needs no database.
+public class LabConnectionTests
+{
     [Fact]
     public void Password_comes_from_the_nearest_docker_env()
     {
@@ -83,16 +97,6 @@ public class LabSelfTests : LabTest
         finally
         {
             root.Delete(recursive: true);
-        }
-    }
-
-    sealed class ScratchLab : LabTest
-    {
-        public async Task RenameProduct1(string name)
-        {
-            var product = await Db.Products.SingleAsync(p => p.ProductId == 1);
-            product.Name = name;
-            await Db.SaveChangesAsync();
         }
     }
 }
