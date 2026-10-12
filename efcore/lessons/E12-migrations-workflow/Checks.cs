@@ -136,9 +136,11 @@ public abstract class E12Checks : IAsyncLifetime
         await using var db = NewContext();
         var table = db.Model.GetEntityTypes().SingleOrDefault(e => e.ClrType.Name == "CustomerStatus")?.GetTableName()
             ?? throw new InvalidOperationException("No CustomerStatus entity in the model: add it as exercise 5 asks");
-        // the table name comes from the model, not user input
-        Assert.Equal(["Active", "Suspended"],
-            await db.Database.SqlQueryRaw<string>($"SELECT Name AS Value FROM [{table}] ORDER BY Id").ToListAsync());
+        // the table name is the model's, not user input
+#pragma warning disable EF1002
+        var names = await db.Database.SqlQueryRaw<string>($"SELECT Name AS Value FROM [{table}] ORDER BY Id").ToListAsync();
+#pragma warning restore EF1002
+        Assert.Equal(["Active", "Suspended"], names);
     }
 
     [Exercise]
