@@ -45,7 +45,7 @@ Every exercise check prints the SQL your code sent, so a failing round-trip chec
 
 - **AdventureWorks2022 is never modified.** Each test runs on its own connection inside a transaction that is rolled back when the test ends (a commit is refused with an error), so writes, updates and deletes in exercises disappear afterwards. No setup scripts, and tests can run in any order.
 - **Some lessons open a second session** (E09: blocking, isolation levels) with its own connection and transaction, also rolled back. Every lab connection waits at most 3 seconds for a lock (`SET LOCK_TIMEOUT 3000`), so a test blocked by its own second session fails instead of hanging. E09's examples and solutions wait out a few of these timeouts on purpose.
-- **The code-first lessons (E10–E12, planned) will use their own `EfLab_<lesson>` databases.** The tests will create and drop them, and the harness will refuse to touch any database whose name doesn't start with `EfLab_`, so AdventureWorks can't be dropped by accident.
+- **The code-first lessons (E10–E12) use their own `EfLab_<lesson>` databases**, created on first use. E10 and E11 create each test's tables inside a rolled-back transaction, so their databases stay empty; E12 drops and recreates `EfLab_E12` for every test because migrations commit. The harness refuses to create, drop or migrate any database whose name doesn't start with `EfLab_`, so AdventureWorks can't be dropped by accident. The `EfLab_*` databases are disposable: delete them whenever you like (`reset-db` doesn't touch them).
 - Tests run one at a time (`xunit.runner.json`), which keeps SQL capture and blocking demos predictable.
 
 ## Lessons
@@ -61,9 +61,9 @@ Every exercise check prints the SQL your code sent, so a failing round-trip chec
 | E07 | Change tracking internals | available |
 | E08 | SaveChanges & set-based writes | available |
 | E09 | Concurrency & transactions | available |
-| E10 | Modeling with the Fluent API | planned |
-| E11 | Inheritance & JSON columns | planned |
-| E12 | Migrations workflow | planned |
+| E10 | Modeling with the Fluent API | available |
+| E11 | Inheritance & JSON columns | available |
+| E12 | Migrations workflow (uses `dotnet ef`) | available |
 | E13 | Capstone | planned |
 
 Design: [`docs/superpowers/specs/2026-10-10-efcore-track-design.md`](../docs/superpowers/specs/2026-10-10-efcore-track-design.md).

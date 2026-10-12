@@ -86,9 +86,11 @@ No solution file: `dotnet test` and IDEs work from the `.csproj`. Each lesson's 
 
 ### `EfLab_*` — code-first lessons (E10–E12)
 
-- Databases named `EfLab_<lesson>` (e.g. `EfLab_E10`), created and dropped by the tests
-  themselves via `EnsureDeleted` + `EnsureCreated` (E10–E11) or migrations (E12). They need no
-  reset script; stale ones are harmless.
+- Databases named `EfLab_<lesson>` (e.g. `EfLab_E10`), created on first use by the tests
+  themselves. E10–E11 create each test's tables inside the test's rolled-back transaction
+  (`IRelationalDatabaseCreator.CreateTables`), so the database stays empty between tests; E12
+  drops and recreates `EfLab_E12` per test, because migrations commit. They need no reset
+  script; stale ones are harmless.
 - This deliberately departs from the `lessonNN`-schema convention: `EnsureCreated` does
   nothing on a database that already has tables, and `EnsureDeleted` /
   `dotnet ef database drop` would drop all of AdventureWorks.
@@ -170,6 +172,8 @@ public class E05Exercises : E05Checks
   both the learner's attempts and the solutions — the two can't drift apart.
 - Lessons that need model changes add a sixth file, `E<NN>Context.cs`: a context derived from
   `AdventureWorksContext` (see Model). Their checks derive from `LabTest<E<NN>Context>`.
+- Code-first lessons (Tier D) add `E<NN>Model.cs`: the plain classes the exercises map. E12
+  also has `SolutionMigrations/` (committed) and the learner's `ExerciseMigrations/`.
 - Each lesson has 5 exercises (`Ex1`–`Ex5`) and 3–4 challenges (`Ch1`–`Ch4`); challenges
   combine concepts and may draw on earlier lessons.
 - An exercise that still throws `NotImplementedException` is reported **skipped**; a wrong
@@ -210,11 +214,11 @@ what the exercise teaches.
   can't leave a transaction (and its locks) open. Commits are refused (`CommitGuard`, and
   `TransactionGuard` for raw `COMMIT`), so nothing a test does can become permanent.
 
-`LabDatabase` (added with Tier D) creates `EfLab_<lesson>` databases for code-first contexts
-and enforces the `EfLab_` guard. Because code-first checks build the model from the learner's
-configuration (Exercises) or the solution's (Solutions), the two models must stay separate in
-EF's model cache — via distinct context types or a model-cache key that includes the
-configuration source; the Tier D plan picks the mechanism.
+`LabDatabase` (added with Tier D) creates and drops `EfLab_<lesson>` databases and enforces the
+`EfLab_` guard (letters, digits and `_` only, checked before any SQL). `CodeFirstTest` gives
+code-first tests a rolled-back transaction in their lesson's database, and builds each model
+from a configuration method with a model-cache key of (method, declaring type), so the
+learner's model (Exercises) and the solution's never share EF's model cache.
 
 **E12 (migrations):** separate exercise and solution contexts, each with its own migrations
 folder and design-time factory. The learner runs `dotnet ef migrations add` against the
@@ -334,9 +338,9 @@ Verified while planning phase 1 (2026-10-10, against the live container):
 
 Still open:
 
-- **Run time:** serial execution plus per-test database recreation in Tier D; acceptable for
-  now (after Tier C, 241 tests run in ~20 s, most of it E09's deliberate lock timeouts),
-  revisit if a full run gets slow.
+- **Run time:** serial execution; after Tier D, 324 tests run in ~30 s (E09's deliberate lock
+  timeouts and E12's database recreation account for most of it). Revisit if a full run gets
+  slow.
 
 ## Out of Scope (Restated)
 
