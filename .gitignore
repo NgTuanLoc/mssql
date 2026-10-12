@@ -13,3 +13,8 @@ Thumbs.db
 
 # Local exercise scratch work (uncomment if you keep notes here)
 # lessons/**/scratch.sql
+
+# .NET build output (efcore/)
+bin/
+obj/
+TestResults/
