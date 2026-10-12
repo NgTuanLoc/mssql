@@ -201,6 +201,8 @@ what the exercise teaches.
   captured commands in its failure message.
 - `Reference` — runs the checks' own reference queries on the same transaction without being
   counted in `Sql`.
+- `QueryPlan.OperatorsAsync(db, query)` (added with Tier B) — the estimated plan's physical
+  operators via `SET SHOWPLAN_XML`, without executing the query or counting it in `Sql`.
 
 `LabDatabase` (added with Tier D) creates `EfLab_<lesson>` databases for code-first contexts
 and enforces the `EfLab_` guard. Because code-first checks build the model from the learner's
@@ -231,7 +233,7 @@ and data survival (e.g. rows seeded before a column rename must still be there a
 | # | Lesson | Depth focus | Builds on |
 |---|---|---|---|
 | E05 | Loading related data | Lazy vs explicit vs eager loading; filtered Include; projection vs Include; N+1; cartesian explosion; `AsSplitQuery` and its consistency trade-off | 04, 13 |
-| E06 | Query performance | `AsNoTracking` vs `AsNoTrackingWithIdentityResolution`; compiled queries; keyset vs offset paging; streaming vs buffering; SARGable LINQ (`.Year ==` vs a date range); plan-cache pollution; finding EF queries in Query Store via `TagWith`; `HasIndex` | 12–13, 15 |
+| E06 | Query performance | `AsNoTracking` vs `AsNoTrackingWithIdentityResolution`; compiled queries; keyset vs offset paging; streaming vs buffering; SARGable LINQ (`.Year ==` vs a date range); plan-cache pollution; finding EF queries in the plan-cache DMVs via `TagWith` (Query Store is off in the container, and enabling it would change the database); `HasIndex` | 12–13, 15 |
 
 ### Tier C — Change tracking & concurrency
 

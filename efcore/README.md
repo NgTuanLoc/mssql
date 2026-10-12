@@ -55,8 +55,8 @@ Every exercise check prints the SQL your code sent, so a failing round-trip chec
 | E02 | Projections, joins & nulls | available |
 | E03 | Grouping, subqueries & where LINQ runs out | available |
 | E04 | Raw SQL, views, functions & procedures | available |
-| E05 | Loading related data | planned |
-| E06 | Query performance | planned |
+| E05 | Loading related data | available |
+| E06 | Query performance | available |
 | E07 | Change tracking internals | planned |
 | E08 | SaveChanges & set-based writes | planned |
 | E09 | Concurrency & transactions | planned |
