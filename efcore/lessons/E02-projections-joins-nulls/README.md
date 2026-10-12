@@ -2,7 +2,7 @@
 
 ## What you'll learn
 
-- How a projection decides which columns EF fetches, and why projections are never tracked
+- How a projection decides which columns EF fetches, and why a projection of plain columns is not tracked
 - How navigations turn into joins: `INNER JOIN` for required relationships, `LEFT JOIN` for optional ones
 - Explicit joins for when no navigation exists: `Join`, EF 10's `LeftJoin` / `RightJoin`, and the classic `GroupJoin` + `DefaultIfEmpty` pattern
 - Set operations: `Union`, `Concat`, `Intersect`, `Except`
@@ -26,7 +26,7 @@ dotnet test --filter E02Examples --logger "console;verbosity=detailed"
 
 ### 1. Projections
 
-`Select` decides what crosses the wire. Query an entity and EF selects every mapped column and tracks the result. Project into a DTO, record or anonymous type and EF selects only the columns the projection uses, and tracks nothing.
+`Select` decides what crosses the wire. Query an entity and EF selects every mapped column and tracks the result. Project into a DTO, record or anonymous type and EF selects only the columns the projection uses, and tracks nothing (an entity inside the projection would still be tracked).
 
 ```csharp
 db.Products.Where(p => p.ListPrice > 3000).ToListAsync();                        // 25 columns, tracked

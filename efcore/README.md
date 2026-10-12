@@ -73,7 +73,7 @@ Design: [`docs/superpowers/specs/2026-10-10-efcore-track-design.md`](../docs/sup
 
 ```bash
 # macOS / Linux
-SA_PASSWORD=$(grep '^SA_PASSWORD=' ../docker/.env | cut -d= -f2-)
+SA_PASSWORD=$(grep '^SA_PASSWORD=' ../docker/.env | cut -d= -f2- | tr -d '\r')
 dotnet ef dbcontext scaffold \
   "Server=localhost,1433;Database=AdventureWorks2022;User Id=sa;Password=$SA_PASSWORD;TrustServerCertificate=True" \
   Microsoft.EntityFrameworkCore.SqlServer \

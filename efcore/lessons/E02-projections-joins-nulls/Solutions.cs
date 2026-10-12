@@ -33,7 +33,7 @@ public class E02Solutions : E02Checks
             .OrderBy(x => x.v.BusinessEntityId)
             .Select(x => new SalesPersonCountry(x.v.BusinessEntityId, x.v.LastName, x.t == null ? null : x.t.CountryRegionCode))
             .ToListAsync();
-    // Why: keyless entities (views) have no navigations, and the match is on names, not a foreign key, so
+    // Why: the scaffolded views have no navigations, and the match is on names, not a foreign key, so
     // only an explicit join works. EF 10's LeftJoin says "keep every left row" directly. The older
     // GroupJoin + SelectMany(DefaultIfEmpty) pattern produces the same LEFT JOIN. The join yields an
     // anonymous pair and the record comes last, because EF can't order by a positional record's

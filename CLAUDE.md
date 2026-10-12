@@ -46,7 +46,7 @@ A separate practice track in `efcore/` (spec: `docs/superpowers/specs/2026-10-10
 
 ```bash
 cd efcore
-dotnet test --filter "FullyQualifiedName!~Exercises"   # examples + solutions + harness self-tests: must all pass
+dotnet test --filter "FullyQualifiedName!~Exercises"   # examples + solutions + harness self-tests: must show 0 failed and 0 skipped (a NotImplementedException solution reports as skipped)
 dotnet test --filter E01Exercises                       # the learner's loop: unattempted exercises report as skipped
 ```
 

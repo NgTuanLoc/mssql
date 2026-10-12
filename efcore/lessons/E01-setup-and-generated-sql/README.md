@@ -102,7 +102,7 @@ Example: `Variables_are_parameters_literals_are_inlined`.
 
 EF translates the whole query to SQL, with one exception: the **final** `Select` may call .NET code EF can't translate. EF fetches the columns that code needs and runs it on the client.
 
-Anywhere else — `Where`, `OrderBy`, `GroupBy`, a nested projection — an untranslatable call throws `InvalidOperationException` ("could not be translated") instead of silently loading the table and filtering in memory. To filter on the client on purpose, call `AsEnumerable()` explicitly, *after* everything SQL can do.
+Anywhere else — `Where`, `OrderBy`, `GroupBy` — an untranslatable call throws `InvalidOperationException` ("could not be translated") instead of silently loading the table and filtering in memory. To filter on the client on purpose, call `AsEnumerable()` explicitly, *after* everything SQL can do. Only the final `Select` (including collections nested inside it) may call .NET code.
 
 Examples: `Untranslatable_Where_throws`, `Untranslatable_final_Select_runs_on_the_client`.
 

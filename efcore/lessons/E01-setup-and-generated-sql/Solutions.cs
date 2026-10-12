@@ -18,7 +18,7 @@ public class E01Solutions : E01Checks
             .Select(e => new EmployeeTitle(e.BusinessEntityId, e.JobTitle))
             .ToListAsync();
     // Why: projecting into the record before ToListAsync makes EF select just those two columns, and a
-    // projection is never tracked. Contains("Manager") on a literal becomes LIKE N'%Manager%'.
+    // projection of plain columns (no entity instances) is not tracked. Contains("Manager") on a literal becomes LIKE N'%Manager%'.
     // Tempting-but-wrong: ToListAsync() first, then Select — every Employee column crosses the wire and
     // every entity gets tracked, only for the projection to throw most of it away.
 
