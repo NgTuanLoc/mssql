@@ -65,6 +65,16 @@ public class LabSelfTests : LabTest
         Assert.Contains("transaction", failure.Message);
     }
 
+    [Fact]
+    public async Task QueryPlan_compiles_without_running_or_counting()
+    {
+        var operators = await QueryPlan.OperatorsAsync(Db, Db.Products.Where(p => p.ProductId == 1));
+
+        Assert.Contains("Clustered Index Seek", operators);
+        Assert.Equal(0, Sql.Count);
+        Assert.Equal(504, await Db.Products.CountAsync()); // SHOWPLAN is off again: queries run normally
+    }
+
     sealed class ScratchLab : LabTest
     {
         public async Task RenameProduct1(string name)
