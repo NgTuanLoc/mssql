@@ -78,7 +78,7 @@ The scaffolder mapped every view as a keyless entity (`HasNoKey().ToView("vSales
 
 - are never tracked: queries return plain objects, so `AsNoTracking` is implied
 - can't be added, attached, updated or deleted: without a key, EF can't identify a row
-- have no navigations: join them explicitly (E02)
+- can't be the target of a navigation (the scaffolded views have none): join them explicitly (E02)
 
 Example: `Views_are_keyless_read_only_entities`.
 

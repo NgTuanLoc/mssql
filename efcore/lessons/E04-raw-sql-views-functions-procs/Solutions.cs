@@ -80,7 +80,7 @@ public class E04Solutions : E04Checks
     // Why: the static stub is mapped to dbo.ufnGetStock, so EF writes the function call into the SELECT and
     // ORDER BY, and TOP(@p) keeps only `top` rows. The body of GetStock never runs.
     // Tempting-but-wrong: selecting the stock for all 504 products and sorting in memory. One round trip,
-    // but it ships 504 rows to keep 10, and it calls the UDF 504 times for nothing.
+    // but it ships all 504 rows to the client to keep 10.
 
     // Exercise 5 — Up the chain
     // Return "FirstName LastName" of each manager returned by dbo.uspGetEmployeeManagers for
