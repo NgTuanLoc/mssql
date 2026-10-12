@@ -13,12 +13,12 @@ public sealed class TransactionGuard : DbCommandInterceptor
     {
         if (Regex.IsMatch(command.CommandText, @"^\s*COMMIT\b", RegexOptions.IgnoreCase))
             throw new InvalidOperationException(
-                "Lab tests never commit: the test's transaction is rolled back when the test ends, so AdventureWorks " +
+                "Lab tests never commit: the test's transaction is rolled back when the test ends, so the database " +
                 "stays unchanged. Remove the COMMIT.");
         if (command.Transaction is null)
             throw new InvalidOperationException(
                 "The test transaction has already ended (committed or rolled back on the server). " +
-                "Further commands would autocommit and modify AdventureWorks, so the test must not continue.");
+                "Further commands would autocommit and modify the database, so the test must not continue.");
     }
 
     public override InterceptionResult<DbDataReader> ReaderExecuting(
