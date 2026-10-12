@@ -17,8 +17,9 @@ public class E05Solutions : E05Checks
             .Include(h => h.SalesOrderDetails)
             .ToListAsync();
     // Why: Include adds the lines to the same query as a LEFT JOIN, ordered so EF can stitch each line to
-    // its order, and marks every collection as loaded. Tempting-but-wrong: skip the Include and let lazy
-    // loading fetch each order's lines when the check counts them: 1 + 28 round trips (the N+1 problem).
+    // its order, and marks every collection as loaded. Tempting-but-wrong: skip the Include and rely on lazy loading.
+    // The collections aren't loaded (the check fails right there), and reading each order's lines would
+    // cost 1 + 28 round trips: the N+1 problem.
 
     // Exercise 2 — Only the recent orders
     // Return customer `customerId` with only the orders placed on or after `since` loaded into
@@ -58,7 +59,7 @@ public class E05Solutions : E05Checks
 
     // Exercise 5 — No N+1
     // Return every territory's Name and its number of customers, ordered by territory name.
-    // Rules: one round trip, however many territories there are.
+    // Rules: one round trip, however many territories there are; load no entities.
     protected override Task<List<TerritoryCustomers>> Ex5(E05Context db)
         => db.SalesTerritories
             .OrderBy(t => t.Name)
@@ -67,6 +68,7 @@ public class E05Solutions : E05Checks
     // Why: Count() inside the projection is a correlated subquery, so the database counts. Tempting-but-
     // wrong: load the territories, then read t.Customers.Count in a loop. With lazy loading on, that is
     // one extra query per territory, each loading every customer of that territory just to count them.
+    // Include(t => t.Customers) plus an in-memory count is one round trip too, but it loads all 19,820 customers to count them.
 
     // Challenge 1 — No cartesian explosion
     // Return sales person `salesPersonId` with SalesOrderHeaders, Stores and SalesPersonQuotaHistories

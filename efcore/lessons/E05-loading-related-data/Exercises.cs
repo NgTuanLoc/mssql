@@ -39,7 +39,7 @@ public class E05Exercises : E05Checks
 
     // Exercise 5 — No N+1
     // Return every territory's Name and its number of customers, ordered by territory name.
-    // Rules: one round trip, however many territories there are.
+    // Rules: one round trip, however many territories there are; load no entities.
     protected override Task<List<TerritoryCustomers>> Ex5(E05Context db)
         => throw new NotImplementedException();
 

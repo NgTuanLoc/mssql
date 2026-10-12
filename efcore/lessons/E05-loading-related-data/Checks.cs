@@ -106,6 +106,7 @@ public abstract class E05Checks : LabTest<E05Context>
             GROUP BY t.Name
             ORDER BY t.Name
             """), result);
+        Assert.Empty(Db.ChangeTracker.Entries()); // counted in SQL, not by loading customers
         Sql.AssertRoundTrips(1); // one query for all territories, not one per territory
     }
 
@@ -115,7 +116,7 @@ public abstract class E05Checks : LabTest<E05Context>
         var salesPerson = await Ch1(Db, 277);
 
         Assert.InRange(Sql.Count, 2, 4);
-        Assert.DoesNotContain("LEFT JOIN", Sql.All); // no query joins two collections to the same parent
+        Assert.True(Sql.Commands.All(sql => sql.Split("JOIN").Length <= 2), "No single query may join more than one collection to the sales person."); // one collection per query at most
         Assert.True(Db.Entry(salesPerson).Collection(s => s.SalesOrderHeaders).IsLoaded);
         Assert.True(Db.Entry(salesPerson).Collection(s => s.Stores).IsLoaded);
         Assert.True(Db.Entry(salesPerson).Collection(s => s.SalesPersonQuotaHistories).IsLoaded);
