@@ -34,7 +34,7 @@ dotnet test --filter E12Examples --logger "console;verbosity=detailed"
 
 The checks apply your migrations to a fresh **`EfLab_E12`** database, one step at a time, inserting rows in between to see whether the data survives. Migrations commit for real, so E12 uses that disposable database (dropped and recreated per test) instead of a rolled-back transaction. AdventureWorks is never involved.
 
-Made a mistake? `dotnet ef migrations remove --context E12ExerciseContext` deletes the last migration and restores the snapshot, as long as no database you care about has applied it. `dotnet ef migrations list --context E12ExerciseContext` shows the chain.
+Made a mistake? `dotnet ef migrations remove --context E12ExerciseContext --force` deletes the last migration and restores the snapshot. `--force` is needed because the checks leave `EfLab_E12` at the last migration they applied, and plain `remove` refuses to delete an applied migration; the lab database doesn't matter, the next test recreates it. Keep your model compiling between steps: the whole test project (every lesson) builds together. `dotnet ef migrations list --context E12ExerciseContext` shows the chain.
 
 The solution's migrations are in `SolutionMigrations/`. They were generated exactly like this, then edited where the Why notes say.
 

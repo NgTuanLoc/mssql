@@ -133,7 +133,12 @@ public abstract class E12Checks : IAsyncLifetime
     {
         await MigrateToAsync(Ex5());
 
-        Assert.Equal(["Active", "Suspended"], await RowsAsync<string>($"SELECT Name AS Value FROM CustomerStatus ORDER BY Id"));
+        await using var db = NewContext();
+        var table = db.Model.GetEntityTypes().SingleOrDefault(e => e.ClrType.Name == "CustomerStatus")?.GetTableName()
+            ?? throw new InvalidOperationException("No CustomerStatus entity in the model: add it as exercise 5 asks");
+        // the table name comes from the model, not user input
+        Assert.Equal(["Active", "Suspended"],
+            await db.Database.SqlQueryRaw<string>($"SELECT Name AS Value FROM [{table}] ORDER BY Id").ToListAsync());
     }
 
     [Exercise]

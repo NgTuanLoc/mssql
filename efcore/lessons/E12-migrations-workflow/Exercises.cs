@@ -101,7 +101,7 @@ namespace EfCoreLessons.E12.Exercise
             });
     }
 
-    // Used by `dotnet ef` at design time. migrations add never connects; database update would, to EfLab_E12.
+    // Used by `dotnet ef` at design time. `migrations add` never connects; `migrations remove`, `migrations list` and `database update` connect to EfLab_E12.
     public class E12ExerciseContextFactory : IDesignTimeDbContextFactory<E12ExerciseContext>
     {
         public E12ExerciseContext CreateDbContext(string[] args)
