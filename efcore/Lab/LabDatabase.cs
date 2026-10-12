@@ -56,6 +56,6 @@ public static partial class LabDatabase
         await command.ExecuteNonQueryAsync();
     }
 
-    [GeneratedRegex("^EfLab_[A-Za-z0-9_]+$")]
+    [GeneratedRegex("^EfLab_[A-Za-z0-9_]+\\z")]
     private static partial Regex SafeName();
 }

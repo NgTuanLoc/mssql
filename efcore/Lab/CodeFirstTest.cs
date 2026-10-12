@@ -74,12 +74,18 @@ public sealed class LabModelContext(DbContextOptions<LabModelContext> options, A
     protected override void OnModelCreating(ModelBuilder modelBuilder) => configure(modelBuilder);
 
     // EF caches one model per key. Keying on the configuration method (and the class it belongs to)
-    // gives every exercise, solution and example its own model.
+    // gives every exercise, solution and example its own model. That only works for a method group or a
+    // lambda that captures nothing but `this`: lambdas that capture locals share a method and a closure
+    // type whatever the captured values, so they are refused.
     internal sealed class CacheKeyFactory : IModelCacheKeyFactory
     {
         public object Create(DbContext context, bool designTime)
         {
             var configure = ((LabModelContext)context).Configure;
+            if (configure.Target?.GetType().Name.Contains("DisplayClass") == true)
+                throw new InvalidOperationException(
+                    "Pass a configuration method (e.g. CreateModelAsync(Ex1)) or a lambda that captures nothing but `this`: " +
+                    "lambdas that capture local variables would share one cached model whatever their captured values.");
             return (configure.Method, configure.Target?.GetType(), designTime);
         }
     }

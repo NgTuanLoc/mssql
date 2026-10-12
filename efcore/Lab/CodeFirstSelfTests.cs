@@ -12,6 +12,7 @@ public class LabDatabaseTests
     [InlineData("EfLab")]
     [InlineData("EfLab_")]
     [InlineData("eflab_E10")]
+    [InlineData("EfLab_E10\n")]
     [InlineData("EfLab_E10]; DROP DATABASE [AdventureWorks2022")]
     public void Guard_refuses_anything_but_EfLab_names(string database)
         => Assert.Throws<InvalidOperationException>(() => LabDatabase.Guard(database));
@@ -62,6 +63,23 @@ public class CodeFirstSelfTests() : CodeFirstTest("LabSelfTest")
         Assert.Equal("Note", first.Model.FindEntityType(typeof(Note))!.GetTableName());
         Assert.Equal("OtherNotes", second.Model.FindEntityType(typeof(Note))!.GetTableName());
     }
+
+    [Fact]
+    public void A_lambda_that_captures_a_local_is_refused()
+    {
+        var table = "X";
+
+        Assert.Throws<InvalidOperationException>(() => NewContext(m => m.Entity<Note>().ToTable(table)).Model);
+    }
+
+    [Fact]
+    public void Capture_free_lambdas_and_lambdas_capturing_this_are_accepted()
+    {
+        Assert.Equal("Note", NewContext(m => m.Entity<Note>()).Model.FindEntityType(typeof(Note))!.GetTableName());
+        Assert.Equal("Note", NewContext(m => m.Entity<Note>().ToTable(NoteTable)).Model.FindEntityType(typeof(Note))!.GetTableName());
+    }
+
+    string NoteTable => "Note";
 
     [Fact]
     public async Task Commits_are_refused_here_too()
