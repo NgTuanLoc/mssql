@@ -203,6 +203,11 @@ what the exercise teaches.
   counted in `Sql`.
 - `QueryPlan.OperatorsAsync(db, query)` (added with Tier B) — the estimated plan's physical
   operators via `SET SHOWPLAN_XML`, without executing the query or counting it in `Sql`.
+- `NewContext<T>(params IInterceptor[])` and `NewSessionAsync(isolationLevel)` (added with Tier C) — a
+  context of another type or with extra interceptors on the test's transaction; and a second,
+  independent session with its own rolled-back transaction. Every lab connection runs
+  `SET LOCK_TIMEOUT 3000`, and disposal attempts every step even if one fails, so a failing test
+  can't leave a transaction (and its locks) open.
 
 `LabDatabase` (added with Tier D) creates `EfLab_<lesson>` databases for code-first contexts
 and enforces the `EfLab_` guard. Because code-first checks build the model from the learner's
@@ -329,7 +334,8 @@ Verified while planning phase 1 (2026-10-10, against the live container):
 Still open:
 
 - **Run time:** serial execution plus per-test database recreation in Tier D; acceptable for
-  now (phase 1's 110 tests run in ~2 s), revisit if a full run gets slow.
+  now (after Tier C, 241 tests run in ~20 s, most of it E09's deliberate lock timeouts),
+  revisit if a full run gets slow.
 
 ## Out of Scope (Restated)
 

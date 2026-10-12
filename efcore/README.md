@@ -44,6 +44,7 @@ Every exercise check prints the SQL your code sent, so a failing round-trip chec
 ## How the database is used
 
 - **AdventureWorks2022 is never modified.** Each test runs on its own connection inside a transaction that is rolled back when the test ends, so writes, updates and deletes in exercises disappear afterwards. No setup scripts, and tests can run in any order.
+- **Some lessons open a second session** (E09: blocking, isolation levels) with its own connection and transaction, also rolled back. Every lab connection waits at most 3 seconds for a lock (`SET LOCK_TIMEOUT 3000`), so a test blocked by its own second session fails instead of hanging. E09's examples and solutions wait out a few of these timeouts on purpose.
 - **The code-first lessons (E10–E12, planned) will use their own `EfLab_<lesson>` databases.** The tests will create and drop them, and the harness will refuse to touch any database whose name doesn't start with `EfLab_`, so AdventureWorks can't be dropped by accident.
 - Tests run one at a time (`xunit.runner.json`), which keeps SQL capture and blocking demos predictable.
 
@@ -57,9 +58,9 @@ Every exercise check prints the SQL your code sent, so a failing round-trip chec
 | E04 | Raw SQL, views, functions & procedures | available |
 | E05 | Loading related data | available |
 | E06 | Query performance | available |
-| E07 | Change tracking internals | planned |
-| E08 | SaveChanges & set-based writes | planned |
-| E09 | Concurrency & transactions | planned |
+| E07 | Change tracking internals | available |
+| E08 | SaveChanges & set-based writes | available |
+| E09 | Concurrency & transactions | available |
 | E10 | Modeling with the Fluent API | planned |
 | E11 | Inheritance & JSON columns | planned |
 | E12 | Migrations workflow | planned |
