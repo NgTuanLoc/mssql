@@ -1,18 +1,23 @@
 using System.Data.Common;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace EfCoreLessons.Lab;
 
 // After a server-side ROLLBACK (a trigger, a deadlock victim, raw SQL) the test transaction is dead
 // and SqlClient runs later commands with no transaction: autocommit, so writes would become permanent.
-// Refuse to send any command in that state.
+// Refuse to send any command in that state, and any raw COMMIT (CommitGuard covers Database.CommitTransaction).
 public sealed class TransactionGuard : DbCommandInterceptor
 {
     static void Check(DbCommand command)
     {
+        if (Regex.IsMatch(command.CommandText, @"^\s*COMMIT\b", RegexOptions.IgnoreCase))
+            throw new InvalidOperationException(
+                "Lab tests never commit: the test's transaction is rolled back when the test ends, so AdventureWorks " +
+                "stays unchanged. Remove the COMMIT.");
         if (command.Transaction is null)
             throw new InvalidOperationException(
-                "The test transaction has already ended (it was rolled back on the server). " +
+                "The test transaction has already ended (committed or rolled back on the server). " +
                 "Further commands would autocommit and modify AdventureWorks, so the test must not continue.");
     }
 

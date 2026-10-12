@@ -207,7 +207,8 @@ what the exercise teaches.
   context of another type or with extra interceptors on the test's transaction; and a second,
   independent session with its own rolled-back transaction. Every lab connection runs
   `SET LOCK_TIMEOUT 3000`, and disposal attempts every step even if one fails, so a failing test
-  can't leave a transaction (and its locks) open.
+  can't leave a transaction (and its locks) open. Commits are refused (`CommitGuard`, and
+  `TransactionGuard` for raw `COMMIT`), so nothing a test does can become permanent.
 
 `LabDatabase` (added with Tier D) creates `EfLab_<lesson>` databases for code-first contexts
 and enforces the `EfLab_` guard. Because code-first checks build the model from the learner's

@@ -68,6 +68,31 @@ public class LabSelfTests : LabTest
     }
 
     [Fact]
+    public async Task Commits_are_refused()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Db.Database.CommitTransactionAsync());
+        await Assert.ThrowsAnyAsync<InvalidOperationException>(() => Db.Database.ExecuteSqlRawAsync("COMMIT"));
+
+        Assert.Equal(504, await Db.Products.CountAsync()); // the test transaction is still usable
+    }
+
+    [Fact]
+    public async Task A_session_commit_is_refused_too()
+    {
+        var session = await NewSessionAsync();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => session.Database.CommitTransactionAsync());
+
+        Assert.Equal(504, await session.Products.CountAsync());
+    }
+
+    [Fact]
+    public async Task Every_lab_connection_has_the_lock_timeout()
+    {
+        Assert.Equal(LockTimeoutMs, (await Reference.Rows<int>($"SELECT @@LOCK_TIMEOUT AS Value")).Single());
+    }
+
+    [Fact]
     public async Task QueryPlan_compiles_without_running_or_counting()
     {
         var operators = await QueryPlan.OperatorsAsync(Db, Db.Products.Where(p => p.ProductId == 1));

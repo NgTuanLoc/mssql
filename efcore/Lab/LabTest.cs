@@ -24,6 +24,7 @@ public abstract class LabTest<TContext> : IAsyncLifetime where TContext : Advent
     protected SqlCapture Sql { get; } = new();
 
     static readonly TransactionGuard Guard = new();
+    static readonly CommitGuard NoCommit = new();
 
     protected TContext Db { get; private set; } = null!;
 
@@ -69,7 +70,7 @@ public abstract class LabTest<TContext> : IAsyncLifetime where TContext : Advent
         where T : AdventureWorksContext
     {
         var options = new DbContextOptionsBuilder<AdventureWorksContext>().UseSqlServer(on)
-            .AddInterceptors(Guard);
+            .AddInterceptors(Guard, NoCommit);
         if (capture) options.AddInterceptors(Sql);
         options.AddInterceptors(interceptors);
 
@@ -101,7 +102,13 @@ public abstract class LabTest<TContext> : IAsyncLifetime where TContext : Advent
         if (transaction != null) await Attempt(transaction.DisposeAsync);
         if (connection != null) await Attempt(connection.DisposeAsync);
         GC.SuppressFinalize(this);
-        if (failures.Count > 0) throw new AggregateException("Disposing the lab test failed.", failures);
+        if (failures.Count > 0)
+        {
+            var hint = failures.Any(f => f is InvalidOperationException && f.Message.Contains("MultipleActiveResultSets"))
+                ? " Hint: a NewSessionAsync command was still running when the test ended; await it (in a finally) before the test returns."
+                : "";
+            throw new AggregateException("Disposing the lab test failed." + hint, failures);
+        }
     }
 }
 
