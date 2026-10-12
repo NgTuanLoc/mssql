@@ -33,7 +33,7 @@ public class E09Examples : LabTest<E09Context>
         Assert.Same(mine, conflict.Entries.Single().Entity);
     }
 
-    // Concept 2: a rowversion is compared on UPDATE and refreshed from OUTPUT INSERTED.
+    // Concept 1: a rowversion is compared on UPDATE and refreshed from OUTPUT INSERTED.
     [Fact]
     public async Task Rowversion_is_checked_and_refreshed()
     {
@@ -50,7 +50,7 @@ public class E09Examples : LabTest<E09Context>
         Assert.NotEqual(before, after); // the database changed it; EF read it back
     }
 
-    // Concept 3: resolving a conflict — store wins (reload) or client wins (refresh the originals).
+    // Concept 2: resolving a conflict — store wins (reload) or client wins (refresh the originals).
     [Fact]
     public async Task Store_wins_or_client_wins()
     {
@@ -74,7 +74,7 @@ public class E09Examples : LabTest<E09Context>
         Assert.Equal(70m, (await Reference.Rows<decimal>($"SELECT ListPrice AS Value FROM Production.Product WHERE ProductID = 1")).Single());
     }
 
-    // Concept 4: inside an open transaction SaveChanges uses a savepoint: a failed batch leaves nothing behind.
+    // Concept 3: inside an open transaction SaveChanges uses a savepoint: a failed batch leaves nothing behind.
     [Fact]
     public async Task A_failed_SaveChanges_rolls_back_its_whole_batch()
     {
@@ -90,7 +90,7 @@ public class E09Examples : LabTest<E09Context>
         Assert.Equal(504, await Db.Products.CountAsync());    // and the transaction is still usable
     }
 
-    // Concept 4: savepoints you create yourself on the current transaction.
+    // Concept 3: savepoints you create yourself on the current transaction.
     [Fact]
     public async Task Savepoints_you_create()
     {
@@ -106,7 +106,7 @@ public class E09Examples : LabTest<E09Context>
         Assert.Equal("Renamed", product.Name); // the entity doesn't know: reload it or clear the tracker
     }
 
-    // Concept 4: SQL Server has no nested transactions, and EF won't start a second one.
+    // Concept 3: SQL Server has no nested transactions, and EF won't start a second one.
     [Fact]
     public async Task BeginTransaction_inside_a_transaction_throws()
     {
@@ -115,7 +115,7 @@ public class E09Examples : LabTest<E09Context>
         Assert.Contains("already in a transaction", failure.Message);
     }
 
-    // Concept 5: with READ_COMMITTED_SNAPSHOT, readers see the last committed version; READ UNCOMMITTED sees dirty data.
+    // Concept 4: with READ_COMMITTED_SNAPSHOT, readers see the last committed version; READ UNCOMMITTED sees dirty data.
     [Fact]
     public async Task Readers_and_isolation_levels()
     {
@@ -128,7 +128,7 @@ public class E09Examples : LabTest<E09Context>
         Assert.Equal("Uncommitted", await NameOf1(readUncommitted));    // a dirty read
     }
 
-    // Concept 6: writers block writers until the lock timeout, then error 1222, wrapped by EF.
+    // Concept 5: writers block writers until the lock timeout, then error 1222, wrapped by EF.
     [Fact]
     public async Task Writers_block_writers_until_the_lock_timeout()
     {
@@ -143,7 +143,7 @@ public class E09Examples : LabTest<E09Context>
         Assert.Equal(1222, Assert.IsType<SqlException>(failure.InnerException).Number);
     }
 
-    // Concept 7: a retrying execution strategy refuses to run inside a transaction it didn't start.
+    // Concept 6: a retrying execution strategy refuses to run inside a transaction it didn't start.
     [Fact]
     public async Task Retrying_strategy_rejects_user_transactions()
     {

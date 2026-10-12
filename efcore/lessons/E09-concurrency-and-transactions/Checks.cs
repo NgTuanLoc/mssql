@@ -108,6 +108,7 @@ public abstract class E09Checks : LabTest<E09Context>
         Assert.True(DateTime.UtcNow - started >= TimeSpan.FromMilliseconds(LockTimeoutMs - 500), "It should have waited for the lock first.");
 
         Assert.True(await Ex5(session, 2, 5m));  // nobody holds this one
+        await Assert.ThrowsAnyAsync<Exception>(() => Ex5(session, 2, -1m)); // a CHECK violation is not a lock timeout: it must not be swallowed
     }
 
     [Exercise]
@@ -118,7 +119,8 @@ public abstract class E09Checks : LabTest<E09Context>
 
         await Ch1(db, 1, 5);
 
-        Assert.Equal(original + 10 + 5, (await Reference.Rows<short>($"SELECT SafetyStockLevel AS Value FROM Production.Product WHERE ProductID = 1")).Single());
+        var actual = (await Reference.Rows<short>($"SELECT SafetyStockLevel AS Value FROM Production.Product WHERE ProductID = 1")).Single();
+        Assert.True(actual == original + 15, $"Expected {original + 15} (the other user's +10 and your +5), got {actual}. Use SaveChanges with a retry on DbUpdateConcurrencyException; ExecuteUpdate bypasses the interfering save this check simulates.");
     }
 
     [Exercise]
@@ -143,7 +145,8 @@ public abstract class E09Checks : LabTest<E09Context>
         var blocked = session.Products.Where(p => p.ProductId == 1).ExecuteUpdateAsync(set => set.SetProperty(p => p.ListPrice, 2m));
         try
         {
-            await Task.Delay(500); // let it start waiting
+            for (var i = 0; i < 20 && (await Reference.Rows<int>($"SELECT COUNT(*) AS Value FROM sys.dm_exec_requests WHERE blocking_session_id = @@SPID")).Single() == 0; i++)
+                await Task.Delay(100); // let it start waiting
             Sql.Reset();
 
             var info = await Ch3(Db);
@@ -156,7 +159,8 @@ public abstract class E09Checks : LabTest<E09Context>
         {
             // Always wait for the blocked write to give up (after LockTimeoutMs): a session can't be
             // closed cleanly while one of its commands is still running.
-            await Assert.ThrowsAnyAsync<Exception>(() => blocked);
+            try { await blocked; }
+            catch (Exception) { } // the expected lock timeout; must not mask an earlier failure
         }
     }
 

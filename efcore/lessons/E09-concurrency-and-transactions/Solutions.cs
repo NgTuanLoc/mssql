@@ -126,8 +126,9 @@ public class E09Solutions : E09Checks
             return false;
         }
     }
-    // Why: the session waits for the lock (here LockTimeoutMs, SET LOCK_TIMEOUT; by default forever),
-    // then SQL Server cancels the statement with error 1222. EF classifies 1222 as transient and wraps it
+    // Why: the session waits for the lock, then SQL Server cancels the statement with error 1222 (only
+    // where SET LOCK_TIMEOUT is set, as here: without it the server waits indefinitely, and the client's command
+    // timeout, 30 s by default, cancels first with a timeout error, -2, not 1222). EF classifies 1222 as transient and wraps it
     // in an InvalidOperationException that suggests EnableRetryOnFailure, so `catch (SqlException)` alone
     // misses it. Filter on the number, wherever the SqlException sits.
 

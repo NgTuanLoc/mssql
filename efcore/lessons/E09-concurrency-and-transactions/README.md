@@ -56,7 +56,7 @@ Example: `Store_wins_or_client_wins`.
 
 ### 3. Transactions and savepoints
 
-- `SaveChanges` always runs in a transaction. With none open, it starts and commits its own, so a batch is all-or-nothing.
+- `SaveChanges` is all-or-nothing. With no transaction open, it starts and commits its own when the save needs more than one statement (a single-statement save is atomic on its own).
 - With one already open (`Database.BeginTransaction()`, or `UseTransaction(...)` as this lab does), `SaveChanges` sets a **savepoint** first and rolls back to it if anything fails. The whole batch is undone, including statements that had succeeded, and the outer transaction stays usable. The failed entities are still Added or Modified in the tracker until you reload, detach or fix them.
 - `Database.CurrentTransaction.CreateSavepointAsync(name)` / `RollbackToSavepointAsync(name)` set your own savepoints. Rolling back changes the database, not the tracked entities.
 - There is no nesting. `BeginTransaction` while a transaction is open throws "The connection is already in a transaction". SQL Server's nested `BEGIN TRAN` only increments a counter, so EF doesn't pretend.

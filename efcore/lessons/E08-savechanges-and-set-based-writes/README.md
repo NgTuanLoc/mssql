@@ -27,7 +27,7 @@ dotnet test --filter E08Examples --logger "console;verbosity=detailed"
 
 ### 1. What SaveChanges sends
 
-`SaveChanges` runs `DetectChanges`, then turns every Added, Modified and Deleted entry into SQL and sends it in as few round trips as it can (on SQL Server, batches of up to 42 statements by default). The batch runs in a transaction: EF's own, or, when one is already open, the current one (E09).
+`SaveChanges` runs `DetectChanges`, then turns every Added, Modified and Deleted entry into SQL and sends it in as few round trips as it can (on SQL Server, batches of up to 42 statements by default). The batch is atomic: it runs in the current transaction if one is open (E09), otherwise EF starts its own when the save needs more than one statement (a single statement is atomic by itself).
 
 | Change | SQL (no trigger on the table) |
 |---|---|

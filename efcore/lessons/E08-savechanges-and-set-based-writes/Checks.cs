@@ -75,7 +75,7 @@ public abstract class E08Checks : LabTest
         var products = await Ex4(Db, 1);
 
         Sql.AssertRoundTrips(2); // the UPDATE, then one query
-        Assert.Contains("UPDATE", Sql.Commands[0]);
+        Assert.StartsWith("UPDATE", Sql.Commands[0].TrimStart()); // ExecuteUpdate, not SaveChanges
         Assert.Equal(expected, products.OrderBy(p => p.ProductId).Select(p => new ProductPrice(p.ProductId, p.ListPrice)).ToList());
     }
 
