@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A self-paced MSSQL 2022 / T-SQL learning curriculum. There is no application code, build, or test suite — the repo is lesson content (Jupyter notebooks + SQL) plus a Docker setup for the database the lessons run against. Design specs and per-tier implementation plans live in `docs/superpowers/`.
+A self-paced MSSQL 2022 / T-SQL learning curriculum: lesson content (Jupyter notebooks + SQL) plus a Docker setup for the database the lessons run against. The T-SQL lessons have no application code, build, or test suite. The separate EF Core practice track in `efcore/` is a .NET 10 xUnit project (see "EF Core track" below). Design specs and implementation plans live in `docs/superpowers/`.
 
 ## Running SQL
 
@@ -39,6 +39,23 @@ These are firm conventions from the design spec (`docs/superpowers/specs/2026-05
 - `exercises-solutions.ipynb` has one solution per exercise, each followed by a short `**Why:**` markdown note explaining the approach, not just the answer.
 - Curriculum tiers: 01–04 foundations, 05–08 working with data, 09–11 programming, 12–13 performance, 14–17 internals (storage, optimizer, memory/log, locking/waits), 18 capstone (complex queries). The internals tier has its own design spec (`docs/superpowers/specs/2026-05-30-mssql-internals-tier5-design.md`); the capstone's is `docs/superpowers/specs/2026-06-11-complex-queries-lesson-design.md`.
 - `cheatsheets/` are standalone reference docs, independent of lesson order.
+
+## EF Core track
+
+A separate practice track in `efcore/` (spec: `docs/superpowers/specs/2026-10-10-efcore-track-design.md`): one xUnit project, `efcore/EfCoreLessons.csproj`, on .NET 10 and EF Core 10.0.12. Package versions are pinned exactly; `efcore/global.json` pins the SDK to 10.0.x and `efcore/dotnet-tools.json` pins `dotnet-ef`.
+
+```bash
+cd efcore
+dotnet test --filter "FullyQualifiedName!~Exercises"   # examples + solutions + harness self-tests: must all pass
+dotnet test --filter E01Exercises                       # the learner's loop: unattempted exercises report as skipped
+```
+
+- Lessons live in `efcore/lessons/E<NN>-<slug>/`: `README.md`, `Examples.cs`, `Checks.cs`, `Exercises.cs`, `Solutions.cs`, plus `E<NN>Context.cs` when the lesson changes the model. Abstract `E<NN>Checks` holds one `[Exercise]` test per exercise and an abstract method for each. `E<NN>Exercises` implements them as `throw new NotImplementedException()` (reported as skipped) and `E<NN>Solutions` with the answers. Prompts are identical in both files, and each solution is followed by a `// Why:` comment.
+- 5 exercises (`Ex1`–`Ex5`) and 3–4 challenges (`Ch1`–`Ch4`) per lesson. Checks assert behavior where it is the point (round trips via `Sql.AssertRoundTrips`, SQL shape, change-tracker state) and compare rows with a reference T-SQL query via `Reference.Rows<T>` where practical.
+- `efcore/Lab/` gives every test a connection and transaction that is rolled back, so the track never modifies AdventureWorks and needs no `setup.sql`. Code-first lessons (E10–E12) will use `EfLab_<lesson>` databases instead.
+- `efcore/Model/` is scaffolder output (command in `efcore/README.md`). Never hand-edit it; lesson-specific model changes go in a derived context in the lesson folder.
+- EF can't translate through a positional record's constructor: compose (`OrderBy`, set operations) on anonymous types and project into the record last.
+- A lesson is done when the build has no new warnings, its examples and solutions pass, its exercises all report as skipped, and every EF Core 10-specific claim has been checked against the docs.
 
 ## Commit style
 

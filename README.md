@@ -7,6 +7,7 @@ A self-paced T-SQL curriculum using MSSQL 2022 Developer edition in Docker and t
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (with Compose v2)
 - [SSMS](https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms) (recommended) or [Azure Data Studio](https://azure.microsoft.com/en-us/products/data-studio)
 - **Windows only:** PowerShell 7+
+- **EF Core track only:** [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 
 ## Quick Start
 
@@ -54,6 +55,10 @@ Connect in SSMS / Azure Data Studio: `localhost,1433` · Login: `sa` · Password
 Each lesson directory contains `setup.sql` (run once) plus three notebooks — `lesson.ipynb` (concepts + runnable examples), `exercises.ipynb` (prompts), and `exercises-solutions.ipynb` (worked solutions).
 
 To run a notebook lesson, open the `.ipynb` in Azure Data Studio and attach the SQL kernel to your `localhost,1433` connection — cells run against the container with results inline. Switch to SSMS where a step calls for its graphical plan viewer.
+
+## EF Core Track
+
+[`efcore/`](efcore/README.md) is a separate practice track for **EF Core 10** on the same container and AdventureWorks database. It's for people who have used EF Core and want depth: generated SQL, loading and performance, change tracking and concurrency, modeling and migrations. Lessons are xUnit exercises whose checks verify *how* a query ran, not just its rows. Lessons E01–E04 are available; start with [`efcore/README.md`](efcore/README.md).
 
 ## Helper Scripts
 
