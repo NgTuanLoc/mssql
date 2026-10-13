@@ -1142,7 +1142,7 @@ Run: `cd efcore && dotnet build -warnaserror && dotnet test --no-build --filter 
 Expected: `0 Warning(s)`, then `Passed!  - Failed: 0, Passed: 13, Skipped: 0, Total: 13` (5 examples, 8 solutions).
 
 ```bash
-cd efcore && python - lessons/lessons/E13-capstone <<'EOF'
+cd efcore && python - lessons/E13-capstone <<'EOF'
 import pathlib, sys
 def prompts(path):
     blocks, current = [], []
@@ -1233,7 +1233,7 @@ Expected: the same four values recorded in Task 0.
   - keyless entity types can be mapped to a defining query (`ToSqlQuery`), are never tracked, and are read-only
   - `ExecuteUpdate` returns the number of rows affected
   - `SaveChanges` inside an existing transaction uses a savepoint it rolls back on failure (E09 already asserts this)
-  - with `READ_COMMITTED_SNAPSHOT` on, an `UPDATE` still takes update locks on the rows it changes, so it waits for another writer's lock and then evaluates its `WHERE` against the committed row (SQL Server's "Transaction locking and row versioning guide"); the README's concept 5 relies on this
+  - with `READ_COMMITTED_SNAPSHOT` on, an `UPDATE` still takes update locks on the rows it changes, so it waits for another writer's lock and then evaluates its `WHERE` against the committed row (true on SQL Server 2022; with optimized locking — SQL Server 2025 / Azure SQL — rows are qualified without U locks, but a waiting UPDATE still re-evaluates its WHERE against the committed row, so the outcome is the same) (SQL Server's "Transaction locking and row versioning guide"); the README's concept 5 relies on this
 
 Expected: no corrections needed. If one is, fix the README sentence and re-run Step 5.
 

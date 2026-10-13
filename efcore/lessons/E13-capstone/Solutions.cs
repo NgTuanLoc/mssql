@@ -30,9 +30,10 @@ public class E13SolutionContext(DbContextOptions<AdventureWorksContext> options)
 public class E13Solutions : E13Checks<E13SolutionContext>
 {
     // Exercise 1 — Products that beat the average
-    // Return each product whose total sales (sum of SalesOrderDetail.LineTotal) beat the average
-    // product's total sales, as ProductTotal, highest first (ties by Name).
-    // Rules: one round trip; the average is computed in SQL.
+    // Return each product that has sales and whose total sales (sum of SalesOrderDetail.LineTotal) beat
+    // the average total of the products that have sales (never-sold products count in neither), as
+    // ProductTotal, highest first (ties by Name).
+    // Rules: one round trip; the average is computed in SQL with Average (AVG).
     protected override Task<List<ProductTotal>> Ex1(E13SolutionContext db)
     {
         var totals = db.SalesOrderDetails
@@ -54,7 +55,7 @@ public class E13Solutions : E13Checks<E13SolutionContext>
     // Exercise 2 — Average monthly revenue
     // For each territory, the average of its monthly revenue (the sum of TotalDue per calendar month),
     // as TerritoryRevenue, highest first.
-    // Rules: one round trip.
+    // Rules: one round trip; the average is computed in SQL with Average (AVG).
     protected override Task<List<TerritoryRevenue>> Ex2(E13SolutionContext db)
         => db.SalesOrderHeaders
             .GroupBy(h => new { h.TerritoryId, h.OrderDate.Year, h.OrderDate.Month })
@@ -70,8 +71,9 @@ public class E13Solutions : E13Checks<E13SolutionContext>
     // CTE. Grouping by Year and Month (not a DateTime built from them) keeps the key simple to translate.
 
     // Exercise 3 — Best customers per territory
-    // For each territory, the `top` customers by lifetime spend (sum of TotalDue of their orders in that
-    // territory), as TopCustomer, ordered by Territory, then spend (highest first), then CustomerId.
+    // For each territory, the `top` customers by lifetime spend (ties by the lower CustomerId) (sum of
+    // TotalDue of their orders in that territory), as TopCustomer, ordered by Territory, then spend
+    // (highest first), then CustomerId.
     // Rules: one round trip; the top-N cut happens in SQL.
     protected override Task<List<TopCustomer>> Ex3(E13SolutionContext db, int top)
     {
