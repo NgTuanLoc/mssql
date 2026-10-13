@@ -105,6 +105,8 @@ public class E10Solutions : E10Checks
             .HasPrincipalKey(m => m.MemberNumber)
             .OnDelete(DeleteBehavior.Cascade);
     // Why: a foreign key can point at any unique column, not only the primary key. HasPrincipalKey makes
-    // MemberNumber an alternate key (a UNIQUE constraint) for the FK to reference. Without it, EF can't
-    // use the string MemberNumber as an FK to the int Id, and adds a shadow MemberId column instead.
+    // MemberNumber an alternate key (a UNIQUE constraint) for the FK to reference. Without it,
+    // HasForeignKey(v => v.MemberNumber) fails model building (a string FK can't target the int Id), and
+    // with no relationship configuration at all the conventions ignore MemberNumber and add a shadow
+    // MemberId column.
 }

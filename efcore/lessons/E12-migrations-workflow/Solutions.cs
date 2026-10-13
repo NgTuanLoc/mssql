@@ -47,7 +47,8 @@ namespace EfCoreLessons.E12
         protected override string Ex3() => "AddIsActive";
         // Why: a new NOT NULL column needs a value for the rows already there, and EF scaffolds the CLR
         // default: defaultValue: false, so every existing customer silently becomes inactive. Backfill in the
-        // migration (migrationBuilder.Sql("UPDATE Customers SET IsActive = 1")), or scaffold
+        // migration (migrationBuilder.Sql("UPDATE Customers SET IsActive = 1"), wrapped in EXEC(N'...'), see
+        // challenge 1), or scaffold
         // defaultValue: true if new rows should default to active too. Either way, decide it explicitly.
 
         // Exercise 4 — Split a column, both ways

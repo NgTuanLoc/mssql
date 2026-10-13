@@ -3,6 +3,7 @@ using EfCoreLessons.Lab;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace EfCoreLessons.E12;
@@ -134,8 +135,10 @@ public abstract class E12Checks : IAsyncLifetime
         await MigrateToAsync(Ex5());
 
         await using var db = NewContext();
-        var table = db.Model.GetEntityTypes().SingleOrDefault(e => e.ClrType.Name == "CustomerStatus")?.GetTableName()
+        var status = db.GetService<IDesignTimeModel>().Model.GetEntityTypes().SingleOrDefault(e => e.ClrType.Name == "CustomerStatus")
             ?? throw new InvalidOperationException("No CustomerStatus entity in the model: add it as exercise 5 asks");
+        Assert.Equal(2, status.GetSeedData().Count()); // declared with HasData, not inserted by SQL
+        var table = status.GetTableName();
         // the table name is the model's, not user input
 #pragma warning disable EF1002
         var names = await db.Database.SqlQueryRaw<string>($"SELECT Name AS Value FROM [{table}] ORDER BY Id").ToListAsync();

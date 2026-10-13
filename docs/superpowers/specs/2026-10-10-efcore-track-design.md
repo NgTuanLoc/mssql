@@ -338,7 +338,7 @@ Verified while planning phase 1 (2026-10-10, against the live container):
 
 Still open:
 
-- **Run time:** serial execution; after Tier D, 324 tests run in ~30 s (E09's deliberate lock
+- **Run time:** serial execution; after Tier D, 327 tests run in ~30 s (E09's deliberate lock
   timeouts and E12's database recreation account for most of it). Revisit if a full run gets
   slow.
 

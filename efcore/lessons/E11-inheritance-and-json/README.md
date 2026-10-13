@@ -5,7 +5,7 @@
 - The three ways to store a class hierarchy (TPH, TPT, TPC): the schema each produces, the SQL each generates, and what that costs
 - Discriminators, and querying on them
 - Mapping objects and lists to JSON columns with `ToJson()` (complex types in EF 10, or owned types)
-- Querying into JSON (`JSON_VALUE`, `OPENJSON`) and updating inside it in place with `ExecuteUpdate` (`JSON_MODIFY`, new in EF 10)
+- Querying into JSON (`JSON_VALUE`, `OPENJSON`) and updating inside it in place with `ExecuteUpdate` (`JSON_MODIFY`; `ExecuteUpdate` into JSON is new in EF 10)
 
 ## Builds on
 
@@ -68,7 +68,7 @@ EF translates paths into the JSON:
 | `o.Shipping.City == "Oslo"` | `JSON_VALUE([o].[Shipping], '$.City') = N'Oslo'` |
 | `o.Notes.Any(n => n.Text.Contains(w))` | `EXISTS (SELECT 1 FROM OPENJSON([o].[Notes], '$') WITH (...) ...)` |
 | `o.Notes.Count` | `(SELECT COUNT(*) FROM OPENJSON([o].[Notes], '$'))` |
-| `ExecuteUpdate(s => s.SetProperty(o => o.Shipping.Carrier, c))` (EF 10) | `SET [Shipping] = JSON_MODIFY([Shipping], '$.Carrier', @p)` |
+| `ExecuteUpdate(s => s.SetProperty(o => o.Shipping.Carrier, c))` (EF 10) | `SET [o].[Shipping] = JSON_MODIFY([o].[Shipping], '$.Carrier', @p)` |
 
 All of it runs in SQL, but none of it can seek an index. A `JSON_VALUE` filter scans every row unless you add a computed column on that path and index it.
 
@@ -80,7 +80,7 @@ Example: `Querying_into_JSON`.
 - **TPC with `IDENTITY` in mind.** Keys come from a sequence, so don't rely on per-table identity values.
 - **Filtering on a TPH subtype in C#.** `p is CardPayment` after `ToList()` loads every payment. Query `Set<CardPayment>()` or `OfType<CardPayment>()`.
 - **JSON for data you search a lot.** `JSON_VALUE` filters can't use an index without a computed column.
-- **Rewriting a whole JSON document to change one value.** In EF 10, `ExecuteUpdate` changes it in place.
+- **Loading rows just to change one JSON value.** In EF 10, `ExecuteUpdate` changes it in place, set-based, without loading anything.
 
 ## Exercises
 

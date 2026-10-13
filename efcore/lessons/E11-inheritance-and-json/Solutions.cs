@@ -103,8 +103,10 @@ public class E11Solutions : E11Checks
             .Where(o => o.Shipping.City == city)
             .ExecuteUpdateAsync(set => set.SetProperty(o => o.Shipping.Carrier, carrier));
     // Why: EF 10 lets ExecuteUpdate set a property inside a JSON column. It becomes
-    // JSON_MODIFY([o].[Shipping], '$.Carrier', @p), changing that one value in place. Before EF 10 you
-    // had to load, change and save each order, rewriting the whole JSON document.
+    // SET [o].[Shipping] = JSON_MODIFY([o].[Shipping], '$.Carrier', @p), changing that one value in
+    // place. Before EF 10, ExecuteUpdate couldn't reach into a JSON column, so you loaded each order,
+    // changed it and called SaveChanges (EF 7+ already sends a partial JSON_MODIFY for that, but only
+    // after loading every row).
 
     // Challenge 3 — Totals per kind
     // `db` maps the payments with TPH (Checks.PaymentsInOneTable: discriminator column Kind). Return the
