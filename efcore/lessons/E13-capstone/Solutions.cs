@@ -95,8 +95,8 @@ public class E13Solutions : E13Checks<E13SolutionContext>
     // cut is in SQL. The CustomerId tiebreak makes "the top 3" well defined when two spends are equal.
 
     // Exercise 4 — Orders per year, side by side
-    // One TerritoryOrders row per territory: its order counts for 2012, 2013 and 2014 plus its total,
-    // ordered by Territory. No PIVOT, no one-query-per-year.
+    // One TerritoryOrders row per territory: its order counts for 2012, 2013 and 2014 plus its total
+    // across all years (2011 included), ordered by Territory. No PIVOT, no one-query-per-year.
     // Rules: one round trip.
     protected override Task<List<TerritoryOrders>> Ex4(E13SolutionContext db)
         => db.SalesOrderHeaders
@@ -122,7 +122,7 @@ public class E13Solutions : E13Checks<E13SolutionContext>
     // For every salesperson in Sales.SalesPerson, their `top` most recent orders (by OrderDate, ties by
     // the higher SalesOrderId), as RecentOrder, ordered by SalesPersonId, then OrderDate and SalesOrderId
     // (both newest first). A salesperson with no orders still appears once, with null order columns.
-    // Rules: one round trip.
+    // Rules: one round trip; the top-N cut happens in SQL.
     protected override Task<List<RecentOrder>> Ex5(E13SolutionContext db, int top)
         => db.SalesPeople
             .SelectMany(

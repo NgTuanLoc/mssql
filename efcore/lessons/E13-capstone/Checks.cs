@@ -139,6 +139,7 @@ public abstract class E13Checks<TContext> : LabTest<TContext> where TContext : E
             """), result);
         Assert.Contains(result, r => r.SalesPersonId == 1 && r.SalesOrderId == null); // kept, with no orders
         Sql.AssertRoundTrips(1);
+        Assert.True(Sql.All.Contains("ROW_NUMBER()") || Sql.All.Contains("APPLY"), "Cut the top N in SQL (E03 concept 5).");
     }
 
     [Exercise]
@@ -202,17 +203,17 @@ public abstract class E13Checks<TContext> : LabTest<TContext> where TContext : E
             """), result);
         Sql.AssertRoundTrips(1);
         Assert.Contains("LAG(", Sql.All);
+        Assert.Contains("ROUND(", Sql.All); // growth and contribution computed by SQL Server
+        Assert.True(Sql.All.Contains("ROW_NUMBER()") || Sql.All.Contains("APPLY"), "Cut the top N in SQL (E03 concept 5).");
     }
 
     // Product 709 (Mountain Bike Socks, M) has 180 in stock at location 7. Customer 29825's last order
     // shipped to address 985 by ship method 5.
     static OrderRequest Socks(short quantity) => new(29825, 985, 5, 709, 7, quantity);
 
-    Task<short> Stock() => Reference.Rows<short>($"SELECT Quantity AS Value FROM Production.ProductInventory WHERE ProductID = 709 AND LocationID = 7")
-        .ContinueWith(t => t.Result.Single());
+    async Task<short> Stock() => (await Reference.Rows<short>($"SELECT Quantity AS Value FROM Production.ProductInventory WHERE ProductID = 709 AND LocationID = 7")).Single();
 
-    Task<int> OrdersOfCustomer() => Reference.Rows<int>($"SELECT COUNT(*) AS Value FROM Sales.SalesOrderHeader WHERE CustomerID = 29825")
-        .ContinueWith(t => t.Result.Single());
+    async Task<int> OrdersOfCustomer() => (await Reference.Rows<int>($"SELECT COUNT(*) AS Value FROM Sales.SalesOrderHeader WHERE CustomerID = 29825")).Single();
 
     [Exercise]
     public async Task Ch3_PlaceAnOrder()
