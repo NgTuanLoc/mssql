@@ -174,6 +174,8 @@ public class E05Exercises : E05Checks
   `AdventureWorksContext` (see Model). Their checks derive from `LabTest<E<NN>Context>`.
 - Code-first lessons (Tier D) add `E<NN>Model.cs`: the plain classes the exercises map. E12
   also has `SolutionMigrations/` (committed) and the learner's `ExerciseMigrations/`.
+- E13 (capstone) has an abstract `E13Context`; the learner's and the solution's contexts derive
+  from it, and its checks are generic (`E13Checks<TContext>`), so each runs on its own model.
 - Each lesson has 5 exercises (`Ex1`–`Ex5`) and 3–4 challenges (`Ch1`–`Ch4`); challenges
   combine concepts and may draw on earlier lessons.
 - An exercise that still throws `NotImplementedException` is reported **skipped**; a wrong
@@ -338,9 +340,9 @@ Verified while planning phase 1 (2026-10-10, against the live container):
 
 Still open:
 
-- **Run time:** serial execution; after Tier D, 327 tests run in ~30 s (E09's deliberate lock
-  timeouts and E12's database recreation account for most of it). Revisit if a full run gets
-  slow.
+- **Run time:** serial execution; with all 13 lessons, 348 tests run in ~30 s (E09's deliberate
+  lock timeouts and E12's database recreation account for most of it). Revisit if a full run
+  gets slow.
 
 ## Out of Scope (Restated)
 

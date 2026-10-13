@@ -58,7 +58,7 @@ To run a notebook lesson, open the `.ipynb` in Azure Data Studio and attach the 
 
 ## EF Core Track
 
-[`efcore/`](efcore/README.md) is a separate practice track for **EF Core 10** on the same container and AdventureWorks database. It's for people who have used EF Core and want depth: generated SQL, loading and performance, change tracking and concurrency, modeling and migrations. Lessons are xUnit exercises whose checks verify *how* a query ran, not just its rows. Lessons E01–E12 are available; start with [`efcore/README.md`](efcore/README.md).
+[`efcore/`](efcore/README.md) is a separate practice track for **EF Core 10** on the same container and AdventureWorks database. It's for people who have used EF Core and want depth: generated SQL, loading and performance, change tracking and concurrency, modeling and migrations. Lessons are xUnit exercises whose checks verify *how* a query ran, not just its rows. All 13 lessons (E01–E13) are available; start with [`efcore/README.md`](efcore/README.md).
 
 ## Helper Scripts
 

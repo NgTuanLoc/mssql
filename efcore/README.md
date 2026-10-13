@@ -64,7 +64,7 @@ Every exercise check prints the SQL your code sent, so a failing round-trip chec
 | E10 | Modeling with the Fluent API | available |
 | E11 | Inheritance & JSON columns | available |
 | E12 | Migrations workflow (uses `dotnet ef`) | available |
-| E13 | Capstone | planned |
+| E13 | Capstone | available |
 
 Design: [`docs/superpowers/specs/2026-10-10-efcore-track-design.md`](../docs/superpowers/specs/2026-10-10-efcore-track-design.md).
 
