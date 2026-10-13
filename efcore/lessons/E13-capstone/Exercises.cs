@@ -35,8 +35,8 @@ public class E13Exercises : E13Checks<E13ExerciseContext>
         => throw new NotImplementedException();
 
     // Exercise 3 — Best customers per territory
-    // For each territory, the `top` customers by lifetime spend (ties by the lower CustomerId) (sum of
-    // TotalDue of their orders in that territory), as TopCustomer, ordered by Territory, then spend
+    // For each territory, the `top` customers by lifetime spend (sum of TotalDue of their orders in that
+    // territory; ties go to the lower CustomerId), as TopCustomer, ordered by Territory, then spend
     // (highest first), then CustomerId.
     // Rules: one round trip; the top-N cut happens in SQL.
     protected override Task<List<TopCustomer>> Ex3(E13ExerciseContext db, int top)
